@@ -26,15 +26,27 @@ include_once __DIR__ . '/../header.php';
         <div class="product-list">
             <?php
             require_once __DIR__ . '/../../Models/db.php';
-            $sql = "SELECT p.*, i.image_url FROM products p LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1 WHERE p.is_featured = 1 LIMIT 4";
+            $sql = "SELECT p.*, c.name as category_name, i.image_url 
+                   FROM products p 
+                   LEFT JOIN categories c ON p.category_id = c.id
+                   LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1 
+                   WHERE p.is_featured = 1 AND p.status = 1
+                   LIMIT 4";
             $result = $conn->query($sql);
             if ($result && $result->num_rows > 0):
                 while ($row = $result->fetch_assoc()): ?>
                     <div class="product-card">
-                        <img src="../img/<?= htmlspecialchars($row['image_url']) ?>" alt="<?= htmlspecialchars($row['name']) ?>" class="product-img">
-                        <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
-                        <div class="product-price"><?= number_format($row['price'], 0, ',', '.') ?>đ</div>
-                        <a href="product.php?id=<?= $row['id'] ?>" class="btn">Xem chi tiết</a>
+                        <img src="/GoodZStore/uploads/<?= htmlspecialchars($row['image_url'] ?? 'no-image.jpg') ?>" 
+                             alt="<?= htmlspecialchars($row['name']) ?>" 
+                             class="product-img">
+                        <div class="product-info">
+                            <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
+                            <div class="product-category"><?= htmlspecialchars($row['category_name']) ?></div>
+                            <div class="product-price"><?= number_format($row['price'], 0, ',', '.') ?>đ</div>
+                            <a href="product.php?id=<?= $row['id'] ?>" class="btn btn-warning">
+                                <i class="fas fa-shopping-cart"></i> Xem chi tiết
+                            </a>
+                        </div>
                     </div>
                 <?php endwhile;
             else: ?>
@@ -46,15 +58,28 @@ include_once __DIR__ . '/../header.php';
         <h2>Sản phẩm mới</h2>
         <div class="product-list">
             <?php
-            $sql = "SELECT p.*, i.image_url FROM products p LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1 ORDER BY p.created_at DESC LIMIT 4 OFFSET 0";
+            $sql = "SELECT p.*, c.name as category_name, i.image_url 
+                   FROM products p 
+                   LEFT JOIN categories c ON p.category_id = c.id
+                   LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1 
+                   WHERE p.status = 1
+                   ORDER BY p.created_at DESC 
+                   LIMIT 4";
             $result = $conn->query($sql);
             if ($result && $result->num_rows > 0):
                 while ($row = $result->fetch_assoc()): ?>
                     <div class="product-card">
-                        <img src="../img/<?= htmlspecialchars($row['image_url']) ?>" alt="<?= htmlspecialchars($row['name']) ?>" class="product-img">
-                        <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
-                        <div class="product-price"><?= number_format($row['price'], 0, ',', '.') ?>đ</div>
-                        <a href="product.php?id=<?= $row['id'] ?>" class="btn">Xem chi tiết</a>
+                        <img src="/GoodZStore/uploads/<?= htmlspecialchars($row['image_url'] ?? 'no-image.jpg') ?>" 
+                             alt="<?= htmlspecialchars($row['name']) ?>" 
+                             class="product-img">
+                        <div class="product-info">
+                            <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
+                            <div class="product-category"><?= htmlspecialchars($row['category_name']) ?></div>
+                            <div class="product-price"><?= number_format($row['price'], 0, ',', '.') ?>đ</div>
+                            <a href="product.php?id=<?= $row['id'] ?>" class="btn btn-warning">
+                                <i class="fas fa-shopping-cart"></i> Xem chi tiết
+                            </a>
+                        </div>
                     </div>
                 <?php endwhile;
             else: ?>
@@ -65,11 +90,18 @@ include_once __DIR__ . '/../header.php';
     <section class="promo">
         <h2>Danh mục sản phẩm</h2>
         <ul class="category-list">
-            <li class="category-item">Áo thun</li>
-            <li class="category-item">Quần jeans</li>
-            <li class="category-item">Áo khoác</li>
-            <li class="category-item">Váy nữ</li>
-            <li class="category-item">Phụ kiện</li>
+            <?php
+            $sql = "SELECT * FROM categories WHERE status = 1 ORDER BY name";
+            $result = $conn->query($sql);
+            if ($result && $result->num_rows > 0):
+                while ($category = $result->fetch_assoc()): ?>
+                    <li class="category-item">
+                        <a href="category.php?id=<?= $category['id'] ?>">
+                            <?= htmlspecialchars($category['name']) ?>
+                        </a>
+                    </li>
+                <?php endwhile;
+            endif; ?>
         </ul>
     </section>
     <section class="special-offer">
