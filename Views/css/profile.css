@@ -1,0 +1,27 @@
+/* Profile/Account Page Styles */
+.profile-info, .order-history, .wishlist {
+    background: var(--gray);
+    border-radius: var(--radius);
+    padding: 18px 24px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+}
+/* CSS cho trang quản lý tài khoản khách hàng */
+:root {
+    --main-color: #2d2e32;
+    --accent: #ff6f61;
+    --bg: #fff;
+    --gray: #e0e0e0;
+    --gray-dark: #888;
+    --text: #222;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+.profile-info, .order-history, .wishlist { /* ...profile styles... */ }

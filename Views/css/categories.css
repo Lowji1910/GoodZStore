@@ -1,0 +1,21 @@
+/* Categories Page Styles */
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin: 32px 0;
+}
+.category-card {
+    background: #e0f7fa;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px #eee;
+    padding: 24px 32px;
+    min-width: 260px;
+    flex: 1;
+    text-align: left;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.category-card:hover {
+    box-shadow: 0 8px 32px #00bcd4;
+    transform: scale(1.04);
+}

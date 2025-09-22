@@ -1,0 +1,40 @@
+<?php
+// Controllers/auth_controller.php
+require_once __DIR__ . '/../Models/db.php';
+
+session_start();
+
+function register_user($full_name, $email, $password, $phone) {
+    global $conn;
+    $hashed = password_hash($password, PASSWORD_BCRYPT);
+    $stmt = $conn->prepare("INSERT INTO users (full_name, email, password, phone_number, role) VALUES (?, ?, ?, ?, 'customer')");
+    $stmt->bind_param("ssss", $full_name, $email, $hashed, $phone);
+    if ($stmt->execute()) {
+        return true;
+    } else {
+        return $stmt->error;
+    }
+}
+
+function login_user($email, $password) {
+    global $conn;
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    if ($user && password_verify($password, $user['password'])) {
+        $_SESSION['user'] = [
+            'id' => $user['id'],
+            'full_name' => $user['full_name'],
+            'email' => $user['email'],
+            'role' => $user['role']
+        ];
+        return $user['role'];
+    }
+    return false;
+}
+
+function logout_user() {
+    session_destroy();
+}

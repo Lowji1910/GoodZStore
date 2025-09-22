@@ -1,11 +1,11 @@
 <?php
-// Quản lý đơn hàng cho admin
+// Quản lý review cho admin
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý Đơn hàng - GoodZStore Admin</title>
+    <title>Quản lý Review - GoodZStore Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/Views/css/layout.css">
 </head>
@@ -15,16 +15,17 @@
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
             <main class="col-md-10 ms-sm-auto px-0">
                 <div class="topbar d-flex align-items-center justify-content-between px-4 py-3">
-                    <h2>Quản lý Đơn hàng</h2>
+                    <h2>Quản lý Review</h2>
                 </div>
                 <div class="content">
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
-                                <th>Khách hàng</th>
-                                <th>Tổng tiền</th>
-                                <th>Trạng thái</th>
+                                <th>Người dùng</th>
+                                <th>Sản phẩm</th>
+                                <th>Rating</th>
+                                <th>Bình luận</th>
                                 <th>Ngày tạo</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -32,24 +33,24 @@
                         <tbody>
                         <?php
                         require_once __DIR__ . '/../../Models/db.php';
-                        $sql = "SELECT o.*, u.full_name FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC";
+                        $sql = "SELECT r.*, u.full_name, p.name as product_name FROM reviews r LEFT JOIN users u ON r.user_id = u.id LEFT JOIN products p ON r.product_id = p.id ORDER BY r.created_at DESC";
                         $result = $conn->query($sql);
                         if ($result && $result->num_rows > 0):
                             while ($row = $result->fetch_assoc()): ?>
                                 <tr>
                                     <td><?= $row['id'] ?></td>
                                     <td><?= htmlspecialchars($row['full_name']) ?></td>
-                                    <td><?= number_format($row['total_amount'], 0, ',', '.') ?>đ</td>
-                                    <td><?= $row['status'] ?></td>
+                                    <td><?= htmlspecialchars($row['product_name']) ?></td>
+                                    <td><?= $row['rating'] ?></td>
+                                    <td><?= htmlspecialchars($row['comment']) ?></td>
                                     <td><?= $row['created_at'] ?></td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-info">Chi tiết</a>
-                                        <a href="#" class="btn btn-sm btn-warning">Cập nhật trạng thái</a>
+                                        <a href="#" class="btn btn-sm btn-danger" onclick="return confirm('Xóa review này?')">Xóa</a>
                                     </td>
                                 </tr>
                             <?php endwhile;
                         else: ?>
-                            <tr><td colspan="6">Không có đơn hàng nào.</td></tr>
+                            <tr><td colspan="7">Không có review nào.</td></tr>
                         <?php endif; ?>
                         </tbody>
                     </table>

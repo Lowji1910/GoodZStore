@@ -1,0 +1,86 @@
+/* Checkout Page Styles */
+.checkout-form {
+    background: #f7f7f7;
+    border-radius: var(--radius);
+    box-shadow: 0 1px 6px #eee;
+    padding: 32px 24px;
+    max-width: 480px;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.checkout-form input,
+.checkout-form select,
+.checkout-form textarea {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--gray);
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+.checkout-form textarea {
+    resize: vertical;
+}
+.btn-order {
+    background: var(--accent);
+    color: #fff;
+    font-size: 1.1rem;
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px #eee;
+    transition: background 0.2s, transform 0.2s;
+    border: none;
+    cursor: pointer;
+    margin-top: 12px;
+}
+.btn-order:hover {
+    background: #ff3b2e;
+    transform: scale(1.05);
+}
+.checkout-summary {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: 0 1px 6px #eee;
+    padding: 24px 32px;
+    max-width: 480px;
+    margin-bottom: 24px;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+.checkout-summary h3 {
+    margin-bottom: 12px;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+.checkout-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 12px;
+}
+.checkout-list li {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 1rem;
+}
+/* CSS cho trang thanh toán */
+:root {
+    --main-color: #2d2e32;
+    --accent: #ff6f61;
+    --bg: #fff;
+    --gray: #e0e0e0;
+    --gray-dark: #888;
+    --text: #222;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+.checkout-form, .btn-order, .checkout-summary, .checkout-list { /* ...checkout styles... */ }

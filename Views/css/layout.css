@@ -1,0 +1,38 @@
+/* Shared header & footer styles and effects */
+#main-header nav ul li a {
+  color: #222;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+#main-header nav ul li a:hover, #main-header nav ul li.active > a {
+  background: #ff6f61;
+  color: #fff;
+}
+#main-header nav ul li {
+  position: relative;
+}
+#main-header .dropdown-menu {
+  box-shadow: 0 2px 12px #eee;
+  border-radius: 12px;
+  background: #fff;
+  min-width: 220px;
+  padding: 12px 0;
+  z-index: 100;
+}
+#main-header .dropdown-menu a {
+  transition: background 0.2s, color 0.2s;
+}
+#main-header .dropdown-menu a:hover {
+  background: #ffd700;
+  color: #222;
+}
+/* Footer styles (add as needed) */
+footer {
+  background: #2d2e32;
+  color: #fff;
+  text-align: center;
+  padding: 24px 0;
+  margin-top: 32px;
+}

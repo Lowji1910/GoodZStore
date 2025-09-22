@@ -1,0 +1,140 @@
+/* Sidebar Admin - Thiết kế lại */
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 230px;
+    height: 100vh;
+    background: #222;
+    color: #FFD600;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+.admin-sidebar .sidebar-heading {
+    text-align: center;
+    padding: 32px 0 16px 0;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #FFD600;
+    letter-spacing: 2px;
+}
+.admin-sidebar .sidebar-heading span {
+    font-size: 1.5rem;
+    color: #FFD600;
+    font-weight: bold;
+}
+.admin-sidebar .sidebar-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 16px;
+}
+.admin-sidebar .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    color: #fff;
+    background: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    font-weight: 500;
+    border: none;
+}
+.admin-sidebar .sidebar-item span {
+    font-size: 1.3em;
+    margin-right: 6px;
+}
+.admin-sidebar .sidebar-item:hover, .admin-sidebar .sidebar-active {
+    background: #FFD600;
+    color: #222 !important;
+    font-weight: bold;
+    box-shadow: 0 2px 8px #FFD60033;
+}
+.admin-sidebar .sidebar-item:hover span, .admin-sidebar .sidebar-active span {
+    color: #222 !important;
+}
+/* Sidebar Admin */
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    background: #222;
+    color: #FFD600;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+}
+.admin-sidebar .sidebar-heading {
+    text-align: center;
+    padding: 32px 0 16px 0;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #FFD600;
+}
+.admin-sidebar .sidebar-heading span {
+    font-size: 1.5rem;
+    color: #FFD600;
+}
+.admin-sidebar .sidebar-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 16px;
+}
+.admin-sidebar .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    color: #fff;
+    background: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+.admin-sidebar .sidebar-item span {
+    font-size: 1.3em;
+}
+.admin-sidebar .sidebar-item:hover, .admin-sidebar .sidebar-active {
+    background: #FFD600;
+    color: #222;
+}
+/* Admin Page Styles */
+.admin-dashboard-page, .admin-categories-page, .admin-products-page, .admin-orders-page, .admin-users-page {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 32px 24px;
+    margin-bottom: 32px;
+}
+/* CSS cho trang admin */
+:root {
+    --main-color: #2d2e32;
+    --accent: #ff6f61;
+    --bg: #fff;
+    --gray: #e0e0e0;
+    --gray-dark: #888;
+    --text: #222;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+.admin-dashboard-page, .admin-categories-page, .admin-products-page, .admin-orders-page, .admin-users-page { /* ...admin styles... */ }

@@ -1,0 +1,236 @@
+/* Homepage Styles */
+:root {
+    --main-color: #2d2e32;
+    --accent: #ff6f61;
+    --bg: #fff;
+    --gray: #e0e0e0;
+    --gray-dark: #888;
+    --text: #222;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+/* Đã xóa hiệu ứng và style header/footer, dùng layout.css cho hiệu ứng chung */
+main {
+    max-width: 1100px;
+    margin: 32px auto;
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 32px 24px;
+}
+/* Banner Slider */
+.banner-slider {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    overflow: hidden;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 32px;
+    background: #f7f7f7;
+}
+.banner-slider .slide {
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0; left: 0;
+    transition: opacity 0.5s;
+}
+.banner-slider .slide.active {
+    display: block;
+    opacity: 1;
+}
+.banner-slider img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius);
+}
+.banner-caption {
+    position: absolute;
+    bottom: 32px;
+    left: 32px;
+    background: rgba(44,44,44,0.7);
+    color: #fff;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+.banner-prev, .banner-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    border: none;
+    font-size: 2rem;
+    padding: 8px 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 2;
+}
+.banner-prev { left: 16px; }
+.banner-next { right: 16px; }
+/* Product List & Card */
+.product-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+.product-card {
+    width: 220px;
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: 0 2px 8px #eee;
+    padding: 16px;
+    text-align: center;
+    transition: box-shadow 0.2s, transform 0.2s;
+    position: relative;
+}
+.product-card:hover {
+    box-shadow: 0 6px 24px #ddd;
+    transform: translateY(-4px) scale(1.03);
+}
+.product-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+.product-name {
+    font-weight: 600;
+    margin: 8px 0;
+    font-size: 1.1rem;
+}
+.product-price {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+/* Category List */
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 24px;
+}
+.category-item {
+    background: #f7f7f7;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px #eee;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.category-item:hover {
+    background: var(--accent);
+    color: #fff;
+}
+/* Special Offer */
+.special-offer {
+    margin: 32px 0 0 0;
+    text-align: center;
+}
+.offer-box {
+    background: var(--main-color);
+    color: #fff;
+    padding: 24px 32px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: inline-block;
+}
+.offer-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px #eee;
+    transition: background 0.2s, transform 0.2s;
+    border: none;
+    cursor: pointer;
+}
+.btn:hover {
+    background: #ff3b2e;
+    transform: scale(1.05);
+}
+.btn-offer {
+    background: #fff;
+    color: var(--main-color);
+    border: 2px solid var(--accent);
+    margin-top: 8px;
+}
+.btn-offer:hover {
+    background: var(--accent);
+    color: #fff;
+}
+.banner, .featured, .bestseller, .promo {
+    margin-bottom: 32px;
+    padding: 24px;
+    border-radius: var(--radius);
+    background: linear-gradient(90deg, #ffecd2 0%, #fcb69f 100%);
+    color: #222;
+    font-size: 1.3rem;
+    font-weight: 500;
+    box-shadow: var(--shadow);
+    animation: fadeIn 1s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* CSS cho trang chủ (index) */
+:root {
+    --main-color: #2d2e32;
+    --accent: #ff6f61;
+    --bg: #fff;
+    --gray: #e0e0e0;
+    --gray-dark: #888;
+    --text: #222;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+main {
+    max-width: 1100px;
+    margin: 32px auto;
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 32px 24px;
+}
+.banner-slider { /* ...banner styles... */ }
+.featured, .bestseller, .promo, .special-offer { /* ...section styles... */ }
+.product-list, .product-card, .product-img, .product-name, .product-price, .btn, .btn-offer { /* ...product styles... */ }
+.category-list, .category-item { /* ...category styles... */ }
+.offer-box, .offer-title { /* ...offer styles... */ }

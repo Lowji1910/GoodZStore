@@ -1,0 +1,102 @@
+/* Cart Page Styles */
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: 0 2px 8px #eee;
+    overflow: hidden;
+}
+.cart-table th, .cart-table td {
+    padding: 14px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray);
+    font-size: 1rem;
+}
+.cart-table th {
+    background: #f7f7f7;
+    font-weight: 600;
+}
+.cart-product {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.cart-img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px #eee;
+}
+.cart-qty {
+    width: 60px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid var(--gray);
+    font-size: 1rem;
+}
+.btn-remove {
+    background: #eee;
+    color: var(--main-color);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-remove:hover {
+    background: var(--accent);
+    color: #fff;
+}
+.cart-summary {
+    background: #f7f7f7;
+    border-radius: var(--radius);
+    box-shadow: 0 1px 4px #eee;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: right;
+}
+.cart-summary p {
+    margin: 8px 0;
+}
+.btn-checkout {
+    background: var(--accent);
+    color: #fff;
+    font-size: 1.1rem;
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px #eee;
+    transition: background 0.2s, transform 0.2s;
+    border: none;
+    cursor: pointer;
+    margin-top: 12px;
+}
+.btn-checkout:hover {
+    background: #ff3b2e;
+    transform: scale(1.05);
+}
+/* CSS cho trang giỏ hàng */
+:root {
+    --main-color: #2d2e32;
+    --accent: #ff6f61;
+    --bg: #fff;
+    --gray: #e0e0e0;
+    --gray-dark: #888;
+    --text: #222;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+.cart-table, .cart-product, .cart-img, .cart-qty, .btn-remove, .cart-summary, .btn-checkout { /* ...cart styles... */ }
