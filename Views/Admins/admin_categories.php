@@ -1,5 +1,37 @@
 <?php
 // Quản lý danh mục cho admin
+require_once __DIR__ . '/../../Models/db.php';
+$msg = '';
+// Thêm danh mục
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
+    $name = trim($_POST['name']);
+    $description = trim($_POST['description']);
+    $created_at = date('Y-m-d H:i:s');
+    $stmt = $conn->prepare("INSERT INTO categories (name, description, created_at) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $name, $description, $created_at);
+    if ($stmt->execute()) {
+        header("Location: admin_categories.php?msg=added");
+        exit;
+    } else {
+        $msg = "Lỗi thêm danh mục: " . $stmt->error;
+    }
+}
+// Xóa danh mục
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_category'])) {
+    $cat_id = intval($_POST['delete_category']);
+    $conn->query("DELETE FROM categories WHERE id = $cat_id");
+    header("Location: admin_categories.php?msg=deleted");
+    exit;
+}
+$limit = 10;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($page - 1) * $limit;
+$sql_count = "SELECT COUNT(*) as total FROM categories";
+$result_count = $conn->query($sql_count);
+$total = $result_count ? intval($result_count->fetch_assoc()['total']) : 0;
+$total_pages = ceil($total / $limit);
+$sql = "SELECT * FROM categories ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
+$result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -16,7 +48,34 @@
             <main class="col-md-10 ms-sm-auto px-0">
                 <div class="topbar d-flex align-items-center justify-content-between px-4 py-3">
                     <h2>Quản lý Danh mục</h2>
-                    <a href="#" class="btn btn-warning">+ Thêm danh mục</a>
+                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Thêm danh mục</button>
+                                <!-- Modal thêm danh mục -->
+                                <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="post">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="addCategoryModalLabel">Thêm danh mục mới</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Tên danh mục</label>
+                                                        <input type="text" name="name" class="form-control" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Mô tả</label>
+                                                        <textarea name="description" class="form-control" rows="2"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                    <button type="submit" name="add_category" class="btn btn-primary">Thêm</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                 </div>
                 <div class="content">
                     <table class="table table-bordered table-hover">
@@ -31,9 +90,6 @@
                         </thead>
                         <tbody>
                         <?php
-                        require_once __DIR__ . '/../../Models/db.php';
-                        $sql = "SELECT * FROM categories ORDER BY created_at DESC";
-                        $result = $conn->query($sql);
                         if ($result && $result->num_rows > 0):
                             while ($row = $result->fetch_assoc()): ?>
                                 <tr>
@@ -43,15 +99,31 @@
                                     <td><?= $row['created_at'] ?></td>
                                     <td>
                                         <a href="#" class="btn btn-sm btn-info">Sửa</a>
-                                        <a href="#" class="btn btn-sm btn-danger" onclick="return confirm('Xóa danh mục này?')">Xóa</a>
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('Xóa danh mục này?')">
+                                            <input type="hidden" name="delete_category" value="<?= $row['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php endwhile;
-                        else: ?>
-                            <tr><td colspan="5">Không có danh mục nào.</td></tr>
-                        <?php endif; ?>
+                        endif;
+                        ?>
                         </tbody>
                     </table>
+                    <!-- Phân trang -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <?php if ($page > 1): ?>
+                                <li class="page-item"><a class="page-link" href="?page=<?= $page-1 ?>">&laquo; Trước</a></li>
+                            <?php endif; ?>
+                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                <li class="page-item<?= $i==$page ? ' active' : '' ?>"><a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a></li>
+                            <?php endfor; ?>
+                            <?php if ($page < $total_pages): ?>
+                                <li class="page-item"><a class="page-link" href="?page=<?= $page+1 ?>">Tiếp &raquo;</a></li>
+                            <?php endif; ?>
+                        </ul>
+                    </nav>
                 </div>
             </main>
         </div>

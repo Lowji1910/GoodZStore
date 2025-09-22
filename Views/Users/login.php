@@ -1,6 +1,10 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../Models/db.php';
+if (isset($_GET['logout']) && $_GET['logout'] == 1) {
+    session_destroy();
+    session_start();
+}
 $msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
@@ -11,13 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $result = $stmt->get_result();
         $user = $result->fetch_assoc();
-    if ($user && $password === $user['password']) {
+        // Tạm thời so sánh trực tiếp để test
+        if ($user && $password === $user['password']) {
             $_SESSION['user'] = [
                 'id' => $user['id'],
                 'full_name' => $user['full_name'],
                 'email' => $user['email'],
                 'role' => $user['role']
             ];
+            $_SESSION['user_id'] = $user['id'];
             if ($user['role'] === 'admin') {
                 header('Location: http://localhost/GoodZStore/Views/Admins/admin_dashboard.php');
                 exit;
@@ -26,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         } else {
-            $msg = 'Sai email hoặc mật khẩu.';
+            $msg = 'Sai email hoặc mật khẩu. [Debug: Email=' . $email . ', Input=' . $password . ', Stored=' . ($user ? $user['password'] : 'not found') . ']';
         }
     } else {
         $msg = 'Vui lòng nhập đầy đủ thông tin.';
@@ -40,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Đăng nhập - GoodZStore</title>
     <link rel="stylesheet" href="../css/layout.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container" style="max-width:400px;margin:64px auto;">

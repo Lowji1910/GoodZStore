@@ -1,5 +1,31 @@
 <?php
 // Admin Dashboard Layout
+require_once __DIR__ . '/../../Models/db.php';
+// Doanh thu hôm nay
+$sql = "SELECT SUM(total_amount) as revenue FROM orders WHERE DATE(created_at) = CURDATE()";
+$result = $conn->query($sql);
+$revenue_today = $result ? number_format($result->fetch_assoc()['revenue'] ?? 0, 0, ',', '.') : '0';
+// Đơn hàng mới hôm nay
+$sql = "SELECT COUNT(*) as orders FROM orders WHERE DATE(created_at) = CURDATE()";
+$result = $conn->query($sql);
+$orders_today = $result ? $result->fetch_assoc()['orders'] : 0;
+// Khách hàng mới hôm nay
+$sql = "SELECT COUNT(*) as users FROM users WHERE DATE(created_at) = CURDATE()";
+$result = $conn->query($sql);
+$users_today = $result ? $result->fetch_assoc()['users'] : 0;
+// Sản phẩm bán chạy nhất
+$sql = "SELECT p.name, SUM(od.quantity) as sold FROM order_details od JOIN products p ON od.product_id = p.id GROUP BY p.id ORDER BY sold DESC LIMIT 1";
+$result = $conn->query($sql);
+$best_product = $result ? $result->fetch_assoc()['name'] ?? '' : '';
+// Top khách hàng mua nhiều
+$top_customers = [];
+$sql = "SELECT u.full_name, COUNT(o.id) as orders FROM orders o JOIN users u ON o.user_id = u.id GROUP BY u.id ORDER BY orders DESC LIMIT 3";
+$result = $conn->query($sql);
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $top_customers[] = $row['full_name'] . ' - ' . $row['orders'] . ' đơn';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -44,7 +70,7 @@
                             <div class="card shadow-sm">
                                 <div class="card-body">
                                     <h5 class="card-title">Doanh thu hôm nay</h5>
-                                    <p class="card-text fs-4 text-success">₫12,500,000</p>
+                                    <p class="card-text fs-4 text-success">₫<?= $revenue_today ?></p>
                                 </div>
                             </div>
                         </div>
@@ -52,7 +78,7 @@
                             <div class="card shadow-sm">
                                 <div class="card-body">
                                     <h5 class="card-title">Đơn hàng mới</h5>
-                                    <p class="card-text fs-4 text-primary">15</p>
+                                    <p class="card-text fs-4 text-primary"><?= $orders_today ?></p>
                                 </div>
                             </div>
                         </div>
@@ -60,7 +86,7 @@
                             <div class="card shadow-sm">
                                 <div class="card-body">
                                     <h5 class="card-title">Khách hàng mới</h5>
-                                    <p class="card-text fs-4 text-info">7</p>
+                                    <p class="card-text fs-4 text-info"><?= $users_today ?></p>
                                 </div>
                             </div>
                         </div>
@@ -68,7 +94,7 @@
                             <div class="card shadow-sm">
                                 <div class="card-body">
                                     <h5 class="card-title">Sản phẩm bán chạy</h5>
-                                    <p class="card-text fs-5">Áo Thun Basic Nam</p>
+                                    <p class="card-text fs-5"><?= htmlspecialchars($best_product) ?></p>
                                 </div>
                             </div>
                         </div>
@@ -81,9 +107,9 @@
                             <div class="card">
                                 <div class="card-header">Top khách hàng mua nhiều</div>
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">Nguyễn Văn A - 5 đơn</li>
-                                    <li class="list-group-item">Trần Thị B - 4 đơn</li>
-                                    <li class="list-group-item">Lê Văn C - 3 đơn</li>
+                                    <?php foreach ($top_customers as $item): ?>
+                                    <li class="list-group-item"><?= htmlspecialchars($item) ?></li>
+                                    <?php endforeach; ?>
                                 </ul>
                             </div>
                         </div>

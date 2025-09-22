@@ -1,28 +1,58 @@
 
 <?php
-// User product detail page
+session_start();
+require_once __DIR__ . '/../../Models/db.php';
+
+// Lấy thông tin sản phẩm từ database
+$product_id = $_GET['id'] ?? 0;
+$sql = "SELECT p.*, c.name as category_name 
+        FROM products p 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        WHERE p.id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $product_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$product = $result->fetch_assoc();
+
+if (!$product) {
+    header('Location: index.php');
+    exit;
+}
+
+// Lấy ảnh sản phẩm
+$sql = "SELECT * FROM product_images WHERE product_id = ? AND is_main = 1";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $product_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$image = $result->fetch_assoc();
+
 include_once __DIR__ . '/../header.php';
 ?>
 <main>
     <div class="product-detail">
         <div class="product-image">
-            <img src="../img/sample.jpg" alt="Sản phẩm" id="mainImg" class="product-img" onclick="zoomImage(this)">
+            <img src="/GoodZStore/uploads/<?= $image ? htmlspecialchars($image['image_url']) : 'no-image.jpg' ?>" 
+                 alt="<?= htmlspecialchars($product['name']) ?>" 
+                 id="mainImg" class="product-img" onclick="zoomImage(this)">
         </div>
         <div class="product-info">
-            <h2 class="product-name">Áo Thun Nam Cao Cấp</h2>
-            <p class="product-price">1.000.000đ</p>
-            <p class="product-desc">Mô tả sản phẩm chi tiết, chất liệu cotton cao cấp, form dáng trẻ trung, phù hợp nhiều phong cách.</p>
-            <form class="product-options">
-                <label>Kích cỡ:
-                    <select><option>S</option><option>M</option><option>L</option></select>
-                </label>
-                <label>Màu sắc:
-                    <select><option>Đen</option><option>Trắng</option></select>
-                </label>
-                <label>Số lượng:
-                    <input type="number" value="1" min="1">
-                </label>
-                <button type="submit" class="btn">Thêm vào giỏ</button>
+            <h2 class="product-name"><?= htmlspecialchars($product['name']) ?></h2>
+            <p class="product-price"><?= number_format($product['price'], 0, ',', '.') ?>đ</p>
+            <p class="product-desc"><?= nl2br(htmlspecialchars($product['description'])) ?></p>
+            <form method="post" action="cart.php" class="product-options">
+                <input type="hidden" name="action" value="add">
+                <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                <div class="mb-3">
+                    <label class="form-label">Số lượng:
+                        <input type="number" name="quantity" value="1" min="1" 
+                               max="<?= $product['stock_quantity'] ?>" class="form-control" required>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
+                </button>
             </form>
         </div>
     </div>

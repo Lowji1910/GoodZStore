@@ -10,7 +10,7 @@
     <div style="flex:1;min-width:180px;">
       <h4 style="color:#FFD700;margin-bottom:12px;">Liên kết nhanh</h4>
       <ul style="list-style:none;padding:0;margin:0;line-height:2;">
-        <li><a href="/Views/Users/index.php" style="color:#fff;text-decoration:none;">Trang chủ</a></li>
+        <li><a href="/GoodZStore/Views/Users/index.php" style="color:#fff;text-decoration:none;">Trang chủ</a></li>
         <li><a href="#" style="color:#fff;text-decoration:none;">Danh mục sản phẩm</a></li>
         <li><a href="#" style="color:#fff;text-decoration:none;">Khuyến mãi</a></li>
         <li><a href="#" style="color:#fff;text-decoration:none;">Giới thiệu</a></li>

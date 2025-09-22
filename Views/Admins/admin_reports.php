@@ -11,6 +11,40 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
+    <?php
+    require_once __DIR__ . '/../../Models/db.php';
+    // Doanh thu từng tháng
+    $revenueData = [];
+    $orderData = [];
+    $labels = [];
+    $sql = "SELECT MONTH(created_at) as month, SUM(total_amount) as revenue, COUNT(*) as orders FROM orders GROUP BY MONTH(created_at) ORDER BY month";
+    $result = $conn->query($sql);
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $labels[] = 'Tháng ' . $row['month'];
+            $revenueData[] = round($row['revenue']/1000000, 2); // triệu đồng
+            $orderData[] = $row['orders'];
+        }
+    }
+    // Top sản phẩm bán chạy
+    $topProducts = [];
+    $sql = "SELECT p.name, SUM(od.quantity) as sold FROM order_details od JOIN products p ON od.product_id = p.id GROUP BY p.id ORDER BY sold DESC LIMIT 3";
+    $result = $conn->query($sql);
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $topProducts[] = $row['name'] . ' - ' . $row['sold'] . ' lượt bán';
+        }
+    }
+    // Tỉ lệ sử dụng voucher
+    $voucherStats = [];
+    $sql = "SELECT v.code, COUNT(*) as used FROM orders o JOIN vouchers v ON o.voucher_id = v.id GROUP BY v.code ORDER BY used DESC LIMIT 3";
+    $result = $conn->query($sql);
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $voucherStats[] = $row['code'] . ' - ' . $row['used'] . ' lượt';
+        }
+    }
+    ?>
     <div class="container-fluid">
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
@@ -32,9 +66,9 @@
                             <div class="card">
                                 <div class="card-header">Top sản phẩm bán chạy</div>
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">Áo Thun Basic Nam - 120 lượt bán</li>
-                                    <li class="list-group-item">Quần Jeans Xanh Nam - 95 lượt bán</li>
-                                    <li class="list-group-item">Giày Sneaker Trắng - 80 lượt bán</li>
+                                    <?php foreach ($topProducts as $item): ?>
+                                    <li class="list-group-item"><?= htmlspecialchars($item) ?></li>
+                                    <?php endforeach; ?>
                                 </ul>
                             </div>
                         </div>
@@ -42,9 +76,9 @@
                             <div class="card">
                                 <div class="card-header">Tỉ lệ sử dụng voucher</div>
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">SALE10 - 35 lượt</li>
-                                    <li class="list-group-item">FREESHIP - 28 lượt</li>
-                                    <li class="list-group-item">BLACKFRIDAY - 12 lượt</li>
+                                    <?php foreach ($voucherStats as $item): ?>
+                                    <li class="list-group-item"><?= htmlspecialchars($item) ?></li>
+                                    <?php endforeach; ?>
                                 </ul>
                             </div>
                         </div>
@@ -58,10 +92,10 @@
     new Chart(document.getElementById('chart-revenue').getContext('2d'), {
         type: 'bar',
         data: {
-            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+            labels: <?= json_encode($labels) ?>,
             datasets: [{
                 label: 'Doanh thu (triệu đồng)',
-                data: [120, 95, 140, 110, 150, 130],
+                data: <?= json_encode($revenueData) ?>,
                 backgroundColor: '#FFD700'
             }]
         }
@@ -70,10 +104,10 @@
     new Chart(document.getElementById('chart-orders').getContext('2d'), {
         type: 'line',
         data: {
-            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+            labels: <?= json_encode($labels) ?>,
             datasets: [{
                 label: 'Số đơn hàng',
-                data: [80, 70, 90, 85, 100, 95],
+                data: <?= json_encode($orderData) ?>,
                 borderColor: '#ff6f61',
                 backgroundColor: 'rgba(255,111,97,0.2)',
                 tension: 0.3,

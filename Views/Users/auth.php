@@ -2,6 +2,11 @@
 // User authentication page (login/register)
 require_once __DIR__ . '/../../Controllers/auth_controller.php';
 include_once __DIR__ . '/../header.php';
+if (isset($_GET['logout']) && $_GET['logout'] == 1) {
+    logout_user();
+    header('Location: login.php');
+    exit;
+}
 $msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['register'])) {
