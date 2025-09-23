@@ -30,11 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_voucher'])) {
 $limit = 10;
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($page - 1) * $limit;
-$sql_count = "SELECT COUNT(*) as total FROM vouchers";
+$q = isset($_GET['q']) ? trim($_GET['q']) : '';
+$where = '1=1';
+if ($q !== '') {
+    $qEsc = $conn->real_escape_string($q);
+    $where = "(CAST(id AS CHAR) LIKE '%$qEsc%' OR code LIKE '%$qEsc%' OR discount_type LIKE '%$qEsc%' OR CAST(discount_value AS CHAR) LIKE '%$qEsc%' OR start_date LIKE '%$qEsc%' OR end_date LIKE '%$qEsc%' OR CAST(usage_limit AS CHAR) LIKE '%$qEsc%' OR CAST(used_count AS CHAR) LIKE '%$qEsc%')";
+}
+$sql_count = "SELECT COUNT(*) as total FROM vouchers WHERE $where";
 $result_count = $conn->query($sql_count);
 $total = $result_count ? intval($result_count->fetch_assoc()['total']) : 0;
-$total_pages = ceil($total / $limit);
-$sql = "SELECT * FROM vouchers ORDER BY start_date DESC LIMIT $limit OFFSET $offset";
+$total_pages = max(1, ceil($total / $limit));
+$sql = "SELECT * FROM vouchers WHERE $where ORDER BY start_date DESC LIMIT $limit OFFSET $offset";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
@@ -43,23 +49,54 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <title>Quản lý Voucher - GoodZStore Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/admin.css">
 </head>
-<body>
+<body class="admin">
     <div class="container-fluid">
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
             <main class="col-md-10 ms-sm-auto px-0">
                 <div class="topbar d-flex align-items-center justify-content-between px-4 py-3">
                     <h2>Quản lý Voucher</h2>
-                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addVoucherModal">+ Thêm voucher</button>
-                                <!-- Modal thêm voucher -->
-                                <div class="modal fade" id="addVoucherModal" tabindex="-1" aria-labelledby="addVoucherModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form method="post">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="addVoucherModalLabel">Thêm voucher mới</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <form method="get" class="d-flex" style="gap:8px;">
+                            <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Tìm ID, mã, loại, giá trị, thời gian..." style="min-width:320px;">
+                            <button class="btn btn-outline-warning" type="submit">Tìm</button>
+                        </form>
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addVoucherModal">+ Thêm voucher</button>
+                    </div>
+                </div>
+                <!-- Modal thêm voucher -->
+                <div class="modal fade" id="addVoucherModal" tabindex="-1" aria-labelledby="addVoucherModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="post">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addVoucherModalLabel">Thêm voucher mới</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mã voucher</label>
+                                        <input type="text" name="code" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Loại giảm giá</label>
+                                        <select name="discount_type" class="form-select" required>
+                                            <option value="percentage">Phần trăm (%)</option>
+                                            <option value="fixed">Số tiền (VNĐ)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Giá trị</label>
+                                        <input type="number" name="discount_value" class="form-control" min="0" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Thời gian hiệu lực</label>
+                                        <div class="d-flex gap-2">
+                                            <input type="date" name="start_date" class="form-control" required>
+                                            <input type="date" name="end_date" class="form-control" required>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
@@ -141,13 +178,13 @@ $result = $conn->query($sql);
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center">
                             <?php if ($page > 1): ?>
-                                <li class="page-item"><a class="page-link" href="?page=<?= $page-1 ?>">&laquo; Trước</a></li>
+                                <li class="page-item"><a class="page-link" href="?page=<?= $page-1 ?>&q=<?= urlencode($q) ?>">&laquo; Trước</a></li>
                             <?php endif; ?>
                             <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                                <li class="page-item<?= $i==$page ? ' active' : '' ?>"><a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a></li>
+                                <li class="page-item<?= $i==$page ? ' active' : '' ?>"><a class="page-link" href="?page=<?= $i ?>&q=<?= urlencode($q) ?>"><?= $i ?></a></li>
                             <?php endfor; ?>
                             <?php if ($page < $total_pages): ?>
-                                <li class="page-item"><a class="page-link" href="?page=<?= $page+1 ?>">Tiếp &raquo;</a></li>
+                                <li class="page-item"><a class="page-link" href="?page=<?= $page+1 ?>&q=<?= urlencode($q) ?>">Tiếp &raquo;</a></li>
                             <?php endif; ?>
                         </ul>
                     </nav>

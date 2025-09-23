@@ -30,7 +30,7 @@ include_once __DIR__ . '/../header.php';
                    FROM products p 
                    LEFT JOIN categories c ON p.category_id = c.id
                    LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1 
-                   WHERE p.is_featured = 1 AND p.status = 1
+                   WHERE p.is_featured = 1
                    LIMIT 4";
             $result = $conn->query($sql);
             if ($result && $result->num_rows > 0):
@@ -62,7 +62,7 @@ include_once __DIR__ . '/../header.php';
                    FROM products p 
                    LEFT JOIN categories c ON p.category_id = c.id
                    LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1 
-                   WHERE p.status = 1
+                   WHERE 1=1
                    ORDER BY p.created_at DESC 
                    LIMIT 4";
             $result = $conn->query($sql);
@@ -91,7 +91,7 @@ include_once __DIR__ . '/../header.php';
         <h2>Danh mục sản phẩm</h2>
         <ul class="category-list">
             <?php
-            $sql = "SELECT * FROM categories WHERE status = 1 ORDER BY name";
+            $sql = "SELECT * FROM categories ORDER BY name";
             $result = $conn->query($sql);
             if ($result && $result->num_rows > 0):
                 while ($category = $result->fetch_assoc()): ?>

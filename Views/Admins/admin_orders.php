@@ -22,11 +22,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_order'])) {
 $limit = 10;
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($page - 1) * $limit;
-$sql_count = "SELECT COUNT(*) as total FROM orders";
+$q = isset($_GET['q']) ? trim($_GET['q']) : '';
+$where = '1=1';
+if ($q !== '') {
+    $qEsc = $conn->real_escape_string($q);
+    $where = "(CAST(o.id AS CHAR) LIKE '%$qEsc%' OR u.full_name LIKE '%$qEsc%' OR u.email LIKE '%$qEsc%' OR u.phone_number LIKE '%$qEsc%' OR o.status LIKE '%$qEsc%' OR CAST(o.total_amount AS CHAR) LIKE '%$qEsc%' OR o.created_at LIKE '%$qEsc%')";
+}
+$sql_count = "SELECT COUNT(*) as total FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE $where";
 $result_count = $conn->query($sql_count);
 $total = $result_count ? intval($result_count->fetch_assoc()['total']) : 0;
-$total_pages = ceil($total / $limit);
-$sql = "SELECT o.*, u.full_name FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC LIMIT $limit OFFSET $offset";
+$total_pages = max(1, ceil($total / $limit));
+$sql = "SELECT o.*, u.full_name FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE $where ORDER BY o.created_at DESC LIMIT $limit OFFSET $offset";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
@@ -35,15 +41,20 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <title>Quản lý Đơn hàng - GoodZStore Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/admin.css">
 </head>
-<body>
+<body class="admin">
     <div class="container-fluid">
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
             <main class="col-md-10 ms-sm-auto px-0">
                 <div class="topbar d-flex align-items-center justify-content-between px-4 py-3">
                     <h2>Quản lý Đơn hàng</h2>
+                    <form method="get" class="d-flex" style="gap:8px;">
+                        <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Tìm ID, khách, email, sđt, trạng thái..." style="min-width:320px;">
+                        <button class="btn btn-outline-warning" type="submit">Tìm</button>
+                    </form>
                 </div>
                 <div class="content">
                     <table class="table table-bordered table-hover">
@@ -94,13 +105,13 @@ $result = $conn->query($sql);
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center">
                             <?php if ($page > 1): ?>
-                                <li class="page-item"><a class="page-link" href="?page=<?= $page-1 ?>">&laquo; Trước</a></li>
+                                <li class="page-item"><a class="page-link" href="?page=<?= $page-1 ?>&q=<?= urlencode($q) ?>">&laquo; Trước</a></li>
                             <?php endif; ?>
                             <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                                <li class="page-item<?= $i==$page ? ' active' : '' ?>"><a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a></li>
+                                <li class="page-item<?= $i==$page ? ' active' : '' ?>"><a class="page-link" href="?page=<?= $i ?>&q=<?= urlencode($q) ?>"><?= $i ?></a></li>
                             <?php endfor; ?>
                             <?php if ($page < $total_pages): ?>
-                                <li class="page-item"><a class="page-link" href="?page=<?= $page+1 ?>">Tiếp &raquo;</a></li>
+                                <li class="page-item"><a class="page-link" href="?page=<?= $page+1 ?>&q=<?= urlencode($q) ?>">Tiếp &raquo;</a></li>
                             <?php endif; ?>
                         </ul>
                     </nav>

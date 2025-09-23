@@ -9,7 +9,7 @@ if ($categoryId <= 0) {
     exit;
 }
 
-$categoryQuery = "SELECT * FROM categories WHERE id = ? AND status = 1";
+$categoryQuery = "SELECT * FROM categories WHERE id = ?";
 $stmt = $conn->prepare($categoryQuery);
 $stmt->bind_param("i", $categoryId);
 $stmt->execute();
@@ -27,12 +27,13 @@ $itemsPerPage = 12;
 $offset = ($page - 1) * $itemsPerPage;
 
 // Lấy tổng số sản phẩm trong danh mục
-$totalQuery = "SELECT COUNT(*) as total FROM products WHERE category_id = ? AND status = 1";
+$totalQuery = "SELECT COUNT(*) as total FROM products WHERE category_id = ?";
 $stmt = $conn->prepare($totalQuery);
 $stmt->bind_param("i", $categoryId);
 $stmt->execute();
 $totalResult = $stmt->get_result();
 $totalRow = $totalResult->fetch_assoc();
+
 $totalItems = $totalRow['total'];
 $totalPages = ceil($totalItems / $itemsPerPage);
 
@@ -43,7 +44,7 @@ $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
 $sql = "SELECT p.*, i.image_url 
         FROM products p 
         LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1 
-        WHERE p.category_id = ? AND p.status = 1 ";
+        WHERE p.category_id = ? ";
 
 switch ($sort) {
     case 'price_asc':
@@ -160,3 +161,4 @@ $result = $stmt->get_result();
 </main>
 
 <?php include_once __DIR__ . '/../footer.php'; ?>
+<link rel="stylesheet" href="../css/products.css">

@@ -15,8 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $result = $stmt->get_result();
         $user = $result->fetch_assoc();
-        // Tạm thời so sánh trực tiếp để test
-        if ($user && $password === $user['password']) {
+        // So sánh bằng password_verify với mật khẩu đã băm (bcrypt)
+        if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user'] = [
                 'id' => $user['id'],
                 'full_name' => $user['full_name'],
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         } else {
-            $msg = 'Sai email hoặc mật khẩu. [Debug: Email=' . $email . ', Input=' . $password . ', Stored=' . ($user ? $user['password'] : 'not found') . ']';
+            $msg = 'Sai email hoặc mật khẩu.';
         }
     } else {
         $msg = 'Vui lòng nhập đầy đủ thông tin.';
@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Đăng nhập - GoodZStore</title>
     <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/auth.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>

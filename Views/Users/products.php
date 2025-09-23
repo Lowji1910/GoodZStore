@@ -7,30 +7,39 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $itemsPerPage = 12;
 $offset = ($page - 1) * $itemsPerPage;
 
-// Lấy tổng số sản phẩm để tính số trang
-$totalQuery = "SELECT COUNT(*) as total FROM products WHERE status = 1";
-$totalResult = $conn->query($totalQuery);
-$totalRow = $totalResult->fetch_assoc();
-$totalItems = $totalRow['total'];
-$totalPages = ceil($totalItems / $itemsPerPage);
-
-// Lấy danh sách danh mục để làm bộ lọc
-$categoriesQuery = "SELECT * FROM categories WHERE status = 1 ORDER BY name";
-$categoriesResult = $conn->query($categoriesQuery);
-
-// Xử lý lọc theo danh mục và sắp xếp
+// Lọc theo danh mục, sắp xếp và tìm kiếm
 $categoryFilter = isset($_GET['category']) ? (int)$_GET['category'] : 0;
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
+$q = isset($_GET['q']) ? trim($_GET['q']) : '';
+$conditions = ["1=1"]; // điều kiện WHERE tích lũy
+if ($categoryFilter > 0) $conditions[] = "p.category_id = $categoryFilter";
+if ($q !== '') {
+    $qEsc = $conn->real_escape_string($q);
+    $conditions[] = "(p.name LIKE '%$qEsc%' OR c.name LIKE '%$qEsc%')";
+}
+
+// Đếm tổng theo điều kiện hiện tại
+$countSql = "SELECT COUNT(DISTINCT p.id) as total
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE " . implode(' AND ', $conditions);
+$totalResult = $conn->query($countSql);
+$totalItems = 0;
+if ($totalResult) {
+    $row = $totalResult->fetch_assoc();
+    $totalItems = (int)($row['total'] ?? 0);
+}
+$totalPages = max(1, (int)ceil($totalItems / $itemsPerPage));
+
+// Lấy danh sách danh mục để làm bộ lọc (bảng categories không có cột status)
+$categoriesQuery = "SELECT * FROM categories ORDER BY name";
+$categoriesResult = $conn->query($categoriesQuery);
 
 $sql = "SELECT p.*, c.name as category_name, i.image_url 
         FROM products p 
         LEFT JOIN categories c ON p.category_id = c.id
         LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1 
-        WHERE p.status = 1 ";
-
-if ($categoryFilter > 0) {
-    $sql .= " AND p.category_id = $categoryFilter";
-}
+        WHERE " . implode(' AND ', $conditions) . " ";
 
 switch ($sort) {
     case 'price_asc':
@@ -56,8 +65,9 @@ $result = $conn->query($sql);
 
     <!-- Bộ lọc và sắp xếp -->
     <div class="row mb-4">
-        <div class="col-md-6">
-            <form class="d-flex" method="GET">
+        <div class="col-md-8">
+            <form class="d-flex" method="GET" style="gap:8px;">
+                <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control me-2" placeholder="Tìm sản phẩm hoặc danh mục...">
                 <select name="category" class="form-select me-2" onchange="this.form.submit()">
                     <option value="0">Tất cả danh mục</option>
                     <?php while ($category = $categoriesResult->fetch_assoc()): ?>
@@ -72,6 +82,7 @@ $result = $conn->query($sql);
                     <option value="price_desc" <?= $sort == 'price_desc' ? 'selected' : '' ?>>Giá giảm dần</option>
                     <option value="name_asc" <?= $sort == 'name_asc' ? 'selected' : '' ?>>Tên A-Z</option>
                 </select>
+                <button class="btn btn-warning" type="submit">Tìm</button>
             </form>
         </div>
     </div>
@@ -113,7 +124,7 @@ $result = $conn->query($sql);
             <ul class="pagination justify-content-center">
                 <?php if ($page > 1): ?>
                     <li class="page-item">
-                        <a class="page-link" href="?page=<?= $page-1 ?>&category=<?= $categoryFilter ?>&sort=<?= $sort ?>">
+                        <a class="page-link" href="?page=<?= $page-1 ?>&category=<?= $categoryFilter ?>&sort=<?= $sort ?>&q=<?= urlencode($q) ?>">
                             Trước
                         </a>
                     </li>
@@ -121,7 +132,7 @@ $result = $conn->query($sql);
 
                 <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                     <li class="page-item <?= $i == $page ? 'active' : '' ?>">
-                        <a class="page-link" href="?page=<?= $i ?>&category=<?= $categoryFilter ?>&sort=<?= $sort ?>">
+                        <a class="page-link" href="?page=<?= $i ?>&category=<?= $categoryFilter ?>&sort=<?= $sort ?>&q=<?= urlencode($q) ?>">
                             <?= $i ?>
                         </a>
                     </li>
@@ -129,7 +140,7 @@ $result = $conn->query($sql);
 
                 <?php if ($page < $totalPages): ?>
                     <li class="page-item">
-                        <a class="page-link" href="?page=<?= $page+1 ?>&category=<?= $categoryFilter ?>&sort=<?= $sort ?>">
+                        <a class="page-link" href="?page=<?= $page+1 ?>&category=<?= $categoryFilter ?>&sort=<?= $sort ?>&q=<?= urlencode($q) ?>">
                             Tiếp
                         </a>
                     </li>
@@ -140,3 +151,4 @@ $result = $conn->query($sql);
 </main>
 
 <?php include_once __DIR__ . '/../footer.php'; ?>
+<link rel="stylesheet" href="../css/products.css">

@@ -7,10 +7,11 @@
     <meta charset="UTF-8">
     <title>Báo cáo & Thống kê - GoodZStore Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/admin.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body>
+<body class="admin">
     <?php
     require_once __DIR__ . '/../../Models/db.php';
     // Doanh thu từng tháng

@@ -28,6 +28,21 @@ $stmt->execute();
 $result = $stmt->get_result();
 $image = $result->fetch_assoc();
 
+// Lấy sản phẩm liên quan (cùng danh mục, khác id hiện tại)
+$related = [];
+if (!empty($product['category_id'])) {
+    $rel_sql = "SELECT p.id, p.name, p.price, i.image_url
+                FROM products p
+                LEFT JOIN product_images i ON p.id = i.product_id AND i.is_main = 1
+                WHERE p.category_id = ? AND p.id <> ?
+                ORDER BY p.created_at DESC
+                LIMIT 4";
+    $stmt = $conn->prepare($rel_sql);
+    $stmt->bind_param("ii", $product['category_id'], $product['id']);
+    $stmt->execute();
+    $related = $stmt->get_result();
+}
+
 include_once __DIR__ . '/../header.php';
 ?>
 <main>
@@ -59,32 +74,46 @@ include_once __DIR__ . '/../header.php';
     <section class="related-products">
         <h3>Sản phẩm liên quan</h3>
         <div class="product-list">
-            <?php for ($i = 1; $i <= 4; $i++): ?>
-            <div class="product-card">
-                <img src="../img/product<?= $i ?>.jpg" alt="Sản phẩm liên quan <?= $i ?>" class="product-img">
-                <div class="product-name">Áo Thun Nam <?= $i ?></div>
-                <div class="product-price">299,000đ</div>
-                <a href="product.php?id=<?= $i ?>" class="btn">Xem chi tiết</a>
-            </div>
-            <?php endfor; ?>
+            <?php if ($related && $related->num_rows > 0):
+                while ($rp = $related->fetch_assoc()): ?>
+                <div class="product-card">
+                    <img src="/GoodZStore/uploads/<?= htmlspecialchars($rp['image_url'] ?? 'no-image.jpg') ?>" alt="<?= htmlspecialchars($rp['name']) ?>" class="product-img">
+                    <div class="product-name"><?= htmlspecialchars($rp['name']) ?></div>
+                    <div class="product-price"><?= number_format($rp['price'], 0, ',', '.') ?>đ</div>
+                    <a href="product.php?id=<?= $rp['id'] ?>" class="btn">Xem chi tiết</a>
+                </div>
+            <?php endwhile; else: ?>
+                <div>Chưa có sản phẩm liên quan.</div>
+            <?php endif; ?>
         </div>
     </section>
+    <?php
+    // Lấy review thực tế từ DB
+    $rev_sql = "SELECT r.rating, r.comment, r.created_at, u.full_name
+                FROM reviews r
+                LEFT JOIN users u ON r.user_id = u.id
+                WHERE r.product_id = ?
+                ORDER BY r.created_at DESC";
+    $stmt = $conn->prepare($rev_sql);
+    $stmt->bind_param("i", $product['id']);
+    $stmt->execute();
+    $reviews = $stmt->get_result();
+    ?>
     <section class="reviews">
         <h3>Đánh giá & Bình luận</h3>
         <div class="review-list">
-            <div class="review-item">
-                <strong>Nguyễn Văn A</strong> <span>★★★★★</span>
-                <p>Áo đẹp, chất liệu tốt, giao hàng nhanh!</p>
-            </div>
-            <div class="review-item">
-                <strong>Trần Thị B</strong> <span>★★★★☆</span>
-                <p>Form chuẩn, mặc rất thoải mái.</p>
-            </div>
+            <?php if ($reviews && $reviews->num_rows > 0):
+                while ($rv = $reviews->fetch_assoc()): ?>
+                <div class="review-item">
+                    <strong><?= htmlspecialchars($rv['full_name'] ?? 'Người dùng') ?></strong>
+                    <span><?= str_repeat('★', max(1, (int)$rv['rating'])) ?></span>
+                    <p><?= nl2br(htmlspecialchars($rv['comment'] ?? '')) ?></p>
+                    <small><?= htmlspecialchars($rv['created_at']) ?></small>
+                </div>
+            <?php endwhile; else: ?>
+                <div>Chưa có đánh giá cho sản phẩm này.</div>
+            <?php endif; ?>
         </div>
-        <form class="review-form">
-            <input type="text" placeholder="Viết bình luận...">
-            <button class="btn">Gửi</button>
-        </form>
     </section>
 </main>
 <?php include_once __DIR__ . '/../footer.php'; ?>

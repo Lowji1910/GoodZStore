@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 22, 2025 at 12:53 PM
+-- Generation Time: Sep 22, 2025 at 04:11 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -68,22 +68,6 @@ CREATE TABLE `orders` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `orders`
---
-
-INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `status`, `shipping_address`, `payment_method`, `created_at`, `updated_at`) VALUES
-(1, 1, 398000.00, 'completed', 'Hà Nội', 'COD', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(2, 2, 299000.00, 'completed', 'TP.HCM', 'Bank Transfer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(3, 3, 499000.00, 'pending', 'Đà Nẵng', 'COD', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(4, 4, 699000.00, 'shipped', 'Cần Thơ', 'COD', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(5, 5, 359000.00, 'processing', 'Hải Phòng', 'COD', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(6, 6, 459000.00, 'completed', 'Huế', 'Bank Transfer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(7, 7, 599000.00, 'pending', 'Bình Dương', 'COD', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(8, 8, 899000.00, 'completed', 'Quảng Ninh', 'COD', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(9, 1, 249000.00, 'cancelled', 'Hà Nội', 'COD', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(10, 2, 199000.00, 'completed', 'TP.HCM', 'COD', '2025-09-22 10:53:15', '2025-09-22 10:53:15');
-
 -- --------------------------------------------------------
 
 --
@@ -97,22 +81,6 @@ CREATE TABLE `order_items` (
   `quantity` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `order_items`
---
-
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`) VALUES
-(1, 1, 1, 2, 199000.00),
-(2, 2, 2, 1, 299000.00),
-(3, 3, 5, 1, 499000.00),
-(4, 4, 7, 1, 699000.00),
-(5, 5, 10, 1, 359000.00),
-(6, 6, 9, 1, 459000.00),
-(7, 7, 6, 1, 599000.00),
-(8, 8, 8, 1, 899000.00),
-(9, 9, 4, 1, 249000.00),
-(10, 10, 1, 1, 199000.00);
 
 -- --------------------------------------------------------
 
@@ -193,22 +161,6 @@ CREATE TABLE `reviews` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `reviews`
---
-
-INSERT INTO `reviews` (`id`, `user_id`, `product_id`, `rating`, `comment`, `created_at`) VALUES
-(1, 1, 1, 5, 'Áo rất đẹp, chất vải thoáng mát', '2025-09-22 10:53:15'),
-(2, 2, 2, 4, 'Áo sơ mi hơi ôm nhưng vẫn ổn', '2025-09-22 10:53:15'),
-(3, 3, 3, 5, 'Quần jeans chất lượng tốt', '2025-09-22 10:53:15'),
-(4, 4, 5, 5, 'Đầm hoa rất xinh, phù hợp đi chơi', '2025-09-22 10:53:15'),
-(5, 5, 7, 4, 'Giày đẹp nhưng hơi rộng', '2025-09-22 10:53:15'),
-(6, 6, 8, 5, 'Túi xách sang trọng, rất thích', '2025-09-22 10:53:15'),
-(7, 7, 9, 4, 'Đồ thể thao thoải mái', '2025-09-22 10:53:15'),
-(8, 8, 10, 5, 'Pijama mềm mịn, dễ chịu', '2025-09-22 10:53:15'),
-(9, 1, 6, 4, 'Áo khoác jean ngầu, chất ổn', '2025-09-22 10:53:15'),
-(10, 2, 4, 3, 'Quần short hơi ngắn so với mong đợi', '2025-09-22 10:53:15');
-
 -- --------------------------------------------------------
 
 --
@@ -232,16 +184,16 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `full_name`, `email`, `password`, `phone_number`, `address`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'Nguyễn Văn A', 'a@example.com', '123456', '0901234567', 'Hà Nội', 'customer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(2, 'Trần Thị B', 'b@example.com', '123456', '0902345678', 'TP.HCM', 'customer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(3, 'Lê Văn C', 'c@example.com', '123456', '0903456789', 'Đà Nẵng', 'customer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(4, 'Phạm Thị D', 'd@example.com', '123456', '0904567890', 'Cần Thơ', 'customer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(5, 'Hoàng Văn E', 'e@example.com', '123456', '0905678901', 'Hải Phòng', 'customer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(6, 'Đỗ Thị F', 'f@example.com', '123456', '0906789012', 'Huế', 'customer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(7, 'Ngô Văn G', 'g@example.com', '123456', '0907890123', 'Bình Dương', 'customer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(8, 'Vũ Thị H', 'h@example.com', '123456', '0908901234', 'Quảng Ninh', 'customer', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(9, 'Admin 1', 'admin1@example.com', 'admin123', '0909012345', 'Hà Nội', 'admin', '2025-09-22 10:53:15', '2025-09-22 10:53:15'),
-(10, 'Admin 2', 'admin2@example.com', 'admin123', '0910123456', 'TP.HCM', 'admin', '2025-09-22 10:53:15', '2025-09-22 10:53:15');
+(1, 'Nguyễn Văn A', 'a@example.com', '123456', '0901234567', 'Hà Nội', 'customer', '2025-09-22 03:53:15', '2025-09-22 13:34:07'),
+(2, 'Trần Thị B', 'b@example.com', '123456', '0902345678', 'TP.HCM', 'customer', '2025-09-22 03:53:15', '2025-09-22 13:34:07'),
+(3, 'Lê Văn C', 'c@example.com', '123456', '0903456789', 'Đà Nẵng', 'customer', '2025-09-22 03:53:15', '2025-09-22 13:34:07'),
+(4, 'Phạm Thị D', 'd@example.com', '123456', '0904567890', 'Cần Thơ', 'customer', '2025-09-22 03:53:15', '2025-09-22 13:34:07'),
+(5, 'Hoàng Văn E', 'e@example.com', '123456', '0905678901', 'Hải Phòng', 'customer', '2025-09-22 03:53:15', '2025-09-22 13:34:07'),
+(6, 'Đỗ Thị F', 'f@example.com', '123456', '0906789012', 'Huế', 'customer', '2025-09-22 03:53:15', '2025-09-22 13:34:07'),
+(7, 'Ngô Văn Giáp', 'g@example.com', '123456', '0907890123', 'Bình Dương sài gòn', 'customer', '2025-09-22 03:53:15', '2025-09-22 13:35:00'),
+(8, 'Vũ Thị H', 'h@example.com', '123456', '0908901234', 'Quảng Ninh', 'customer', '2025-09-22 03:53:15', '2025-09-22 13:34:07'),
+(9, 'Admin 1', 'admin1@example.com', 'admin123', '0909012345', 'Hà Nội', 'admin', '2025-09-22 03:53:15', '2025-09-22 13:34:07'),
+(10, 'Admin 2', 'admin2@example.com', 'admin123', '0910123456', 'TP.HCM', 'admin', '2025-09-22 03:53:15', '2025-09-22 13:34:07');
 
 -- --------------------------------------------------------
 

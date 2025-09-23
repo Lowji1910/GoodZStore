@@ -25,9 +25,10 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <title>Quản lý Review - GoodZStore Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/admin.css">
 </head>
-<body>
+<body class="admin">
     <div class="container-fluid">
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>

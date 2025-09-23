@@ -33,8 +33,9 @@ if ($result) {
     <meta charset="UTF-8">
     <title>GoodZStore Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Views/css/layout.css">
-    <link rel="stylesheet" href="/Views/css/sidebar_admin.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/admin.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/sidebar_admin.css">
 </head>
 <body>
     <div class="container-fluid">

@@ -1,32 +1,55 @@
+/* Design tokens */
+:root {
+  --gray-900: #222;
+  --gray-800: #333;
+  --gray-700: #444;
+  --gray-100: #f9f9f9;
+  --white: #fff;
+  --yellow: #FFD600;
+  --peach: #FFB088;
+  --peach-strong: #FF9966;
+  --border: #e6e6e6;
+  --shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* Base reset */
+html, body { margin: 0; padding: 0; }
+body { background: var(--gray-100); color: var(--gray-900); font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; }
+h1,h2,h3,h4 { color: var(--gray-900); margin: 0 0 12px 0; }
+a { color: #666; text-decoration: none; }
+a:hover { color: var(--yellow); }
+
 /* Shared header & footer styles and effects */
 #main-header nav ul li a {
-  color: #222;
+  color: #fff;
   text-decoration: none;
   padding: 6px 10px;
   border-radius: 8px;
   transition: background 0.2s, color 0.2s;
 }
 #main-header nav ul li a:hover, #main-header nav ul li.active > a {
-  background: #ff6f61;
+  background: var(--peach-strong);
   color: #fff;
 }
 #main-header nav ul li {
   position: relative;
 }
 #main-header .dropdown-menu {
-  box-shadow: 0 2px 12px #eee;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   border-radius: 12px;
-  background: #fff;
+  background: #1a1a1a; /* match header background */
+  border: 1px solid #3a3a3a;
   min-width: 220px;
   padding: 12px 0;
   z-index: 100;
 }
 #main-header .dropdown-menu a {
+  color: #fff;
   transition: background 0.2s, color 0.2s;
 }
 #main-header .dropdown-menu a:hover {
-  background: #ffd700;
-  color: #222;
+  background: #222;
+  color: #ffd700;
 }
 /* Footer styles (add as needed) */
 footer {

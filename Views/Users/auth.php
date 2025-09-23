@@ -16,17 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $msg = 'Lỗi: ' . htmlspecialchars($result);
         }
-    } elseif (isset($_POST['login'])) {
-        $role = login_user(trim($_POST['email']), $_POST['password']);
-        if ($role === 'admin') {
-            header('Location: /Views/Admins/admin_dashboard.php');
-            exit;
-        } elseif ($role === 'customer') {
-            header('Location: index.php');
-            exit;
-        } else {
-            $msg = 'Sai email hoặc mật khẩu, hoặc tài khoản bị khóa.';
-        }
     }
 }
 ?>
@@ -34,41 +23,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đăng ký / Đăng nhập</title>
-    <link rel="stylesheet" href="../style.css">
+    <title>Đăng ký</title>
+    <link rel="stylesheet" href="../css/auth.css">
 </head>
 <body>
     <div class="container auth-page">
-        <h2>Đăng nhập / Đăng ký</h2>
-        <!-- Form đăng nhập/đăng ký sẽ được thêm ở đây -->
+        <h2>Đăng ký</h2>
         <main>
             <?php if ($msg) { ?>
-                <div class="msg"> <?php echo $msg; ?> </div>
+                <div class="msg"> <?= $msg ?> </div>
             <?php } ?>
-            <a href="index.php">Quay lại Trang chủ</a>
+
+            <form class="register-form" method="post" autocomplete="off">
+                <input type="text" name="full_name" placeholder="Tên" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Mật khẩu" required>
+                <input type="text" name="phone" placeholder="Số điện thoại">
+                <button type="submit" name="register">Đăng ký</button>
+            </form>
+
+            <div style="text-align:center;margin-top:10px;display:flex;flex-direction:column;gap:8px;align-items:center;">
+                <a href="login.php" class="btn btn-link" style="display:inline-block;padding:10px 14px;border-radius:10px;background:#FFD600;color:#222;text-decoration:none;font-weight:600;">Bạn đã có tài khoản? Đăng nhập</a>
+                <a href="index.php">Quay lại Trang chủ</a>
+            </div>
         </main>
     </div>
-<?php include_once __DIR__ . '/../footer.php'; ?>
-</body>
-</html>
-            <div style="color: red; margin-bottom: 16px; text-align:center;"> <?= $msg ?> </div>
-        <?php endif; ?>
-        <form class="register-form" method="post" autocomplete="off">
-            <h2>Đăng ký</h2>
-            <input type="text" name="full_name" placeholder="Tên" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Mật khẩu" required>
-            <input type="text" name="phone" placeholder="Số điện thoại">
-            <button type="submit" name="register">Đăng ký</button>
-        </form>
-        <form class="login-form" method="post" autocomplete="off">
-            <h2>Đăng nhập</h2>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Mật khẩu" required>
-            <button type="submit" name="login">Đăng nhập</button>
-        </form>
-        <a href="#">Quên mật khẩu?</a>
-    </main>
-    <script src="ui.js"></script>
-</body>
-</html>
+    <?php include_once __DIR__ . '/../footer.php'; ?>
+    <script src="../ui.js"></script>
+ </body>
+ </html>

@@ -32,6 +32,20 @@ function login_user($email, $password) {
         ];
         return $user['role'];
     }
+    // Legacy plaintext support: if stored is not a bcrypt hash, allow one-time upgrade
+    if ($user && substr($user['password'], 0, 4) !== '$2y$' && $password === $user['password']) {
+        // Upgrade to bcrypt
+        $newHash = password_hash($password, PASSWORD_BCRYPT);
+        $upd = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+        if ($upd) { $upd->bind_param('si', $newHash, $user['id']); $upd->execute(); }
+        $_SESSION['user'] = [
+            'id' => $user['id'],
+            'full_name' => $user['full_name'],
+            'email' => $user['email'],
+            'role' => $user['role']
+        ];
+        return $user['role'];
+    }
     return false;
 }
 
