@@ -82,6 +82,14 @@ document.addEventListener('DOMContentLoaded', function () {
     aiExtras.appendChild(d);
   }
 
+  // Remove any leading speaker labels returned by backend to avoid duplicates (e.g., "AI:" "Assistant:")
+  function sanitizeAiText(text) {
+    if (!text) return '';
+    try {
+      return String(text).replace(/^\s*(AI|Assistant|Bot)\s*:\s*/i, '');
+    } catch { return text; }
+  }
+
   async function aiSendMsg() {
     const txt = aiInput.value.trim();
     if (!txt) return;
@@ -90,13 +98,21 @@ document.addEventListener('DOMContentLoaded', function () {
     aiAppend('AI', '⏳ Đang xử lý...');
 
     try {
+      // Detect product context on product detail page for DB-backed recommendations
+      const url = new URL(window.location.href);
+      const isProductPage = /\/Views\/Users\/product\.php$/i.test(url.pathname);
+      const productId = isProductPage ? parseInt(url.searchParams.get('id') || '0', 10) || null : null;
+      const metadata = {};
+      if (productId) metadata.product_id = productId;
+
       const res = await fetch('http://127.0.0.1:5000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: txt, user_id: aiUserId })
+        body: JSON.stringify({ message: txt, user_id: aiUserId, metadata })
       });
       const j = await res.json();
-      aiBox.lastChild.innerHTML = `<strong>AI:</strong> ${j.text || '🤖 Không có phản hồi.'}`;
+      const cleaned = sanitizeAiText(j.text || '🤖 Không có phản hồi.');
+      aiBox.lastChild.innerHTML = `<strong>AI:</strong> ${cleaned}`;
       if (j.size_suggestion && j.size_suggestion.size) {
         aiAppendHTML(`<div><b>📏 Gợi ý size:</b> ${j.size_suggestion.size}<br><small>${j.size_suggestion.reason || ''}</small></div>`);
       }
@@ -114,9 +130,25 @@ document.addEventListener('DOMContentLoaded', function () {
           }).join('') + '</ul></div>');
       }
     } catch {
-      aiBox.lastChild.innerHTML = '<strong>AI:</strong> ❌ Không thể kết nối API.';
+      const cleaned = sanitizeAiText('❌ Không thể kết nối API.');
+      aiBox.lastChild.innerHTML = `<strong>AI:</strong> ${cleaned}`;
     }
   }
+  <!-- AI Chat Panel (global) -->
+<div id="ai-global-chat" style="display:none;position:fixed;right:20px;bottom:90px;width:340px;height:420px;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:2147483646;overflow:hidden;border:1px solid #e5e7eb;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#111827;color:#fff;">
+    <div style="font-weight:600;">GoodZ AI</div>
+    <button id="ai-close" style="background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;">×</button>
+  </div>
+  <div id="ai-chat-messages" style="height:300px;overflow-y:auto;padding:10px;background:#f9fafb;"></div>
+  <div style="padding:10px;border-top:1px solid #eee;background:#fff;display:flex;gap:6px;">
+    <input id="ai-input" type="text" placeholder="Hỏi trợ lý thời trang..." style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;">
+    <button id="ai-send" style="background:#2563eb;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;">Gửi</button>
+  </div>
+  <div id="ai-extras" style="max-height:160px;overflow:auto;padding:10px;background:#fff;border-top:1px solid #eee;display:none;"></div>
+  <div style="padding:8px 10px;background:#fff;border-top:1px solid #eee;font-size:12px;color:#6b7280;">🤖 AI có thể tư vấn size, gợi ý sản phẩm, và mã giảm giá.</div>
+  </div>
+
 
   // Event bindings
   if (aiBtn) aiBtn.addEventListener('click', () => aiPanel.style.display = aiPanel.style.display === 'none' ? 'block' : 'none');

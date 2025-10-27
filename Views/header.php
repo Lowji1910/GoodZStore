@@ -188,3 +188,5 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
+<!-- AI_WIDGET_DEBUG: v1 -->
+<?php echo "<!-- HEADER_PATH: " . __FILE__ . " -->"; ?>

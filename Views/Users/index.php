@@ -1,5 +1,17 @@
-<?php
-include_once __DIR__ . '/header.php';
+<?php // Bật hiển thị lỗi
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Ghi log mỗi khi include file
+function debug_include($path) {
+    echo "<pre style='background:#f4f4f4;padding:10px'>Đang include file: " . realpath($path) . "</pre>";
+    include($path);
+}
+include_once __DIR__ . '/../header.php';
+// DEBUG: show which header file is included
+echo "<!-- INDEX_INCLUDE_DEBUG: " . realpath(__DIR__ . '/../header.php') . " | mtime=" . @filemtime(__DIR__ . '/../header.php') . " -->";
+// DEBUG: confirm current index file path
+echo "<!-- INDEX_FILE: " . __FILE__ . " -->";
 require_once __DIR__ . '/../../Models/db.php';
 
 // Load banners from database
