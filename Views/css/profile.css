@@ -1,0 +1,115 @@
+/* ========== Profile Page Modern Styles ========== */
+:root {
+  --main-color: #1f1f1f;
+  --accent: #FFD600;          /* match site brand */
+  --accent-2: #FFB088;        /* soft peach */
+  --bg: #f8f9fb;
+  --card-bg: #ffffff;
+  --text: #222;
+  --muted: #6b7280;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 12px 32px rgba(0,0,0,0.08);
+  --shadow-sm: 0 6px 18px rgba(0,0,0,0.06);
+  --border: #eceff3;
+}
+
+body {
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Page wrapper */
+.profile-page {
+  max-width: 760px !important;
+  margin: 40px auto 80px auto;
+  padding: 0 16px;
+}
+
+.profile-page h2 {
+  font-weight: 800;
+  letter-spacing: .2px;
+  margin-bottom: 18px;
+  position: relative;
+}
+.profile-page h2::after {
+  content: "";
+  display: block;
+  width: 68px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  margin-top: 8px;
+}
+
+/* Carded table look */
+.profile-page .table {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+.profile-page .table tr + tr td, .profile-page .table tr + tr th {
+  border-top: 1px solid var(--border);
+}
+.profile-page .table th {
+  width: 36%;
+  background: #fafbff;
+  color: var(--muted);
+  font-weight: 700;
+  border: none;
+  padding: 14px 16px;
+}
+.profile-page .table td {
+  border: none;
+  padding: 14px 16px;
+}
+
+/* Row hover softness */
+.profile-page .table tbody tr:hover td {
+  background: #fcfcff;
+}
+
+/* Buttons: rounded, subtle shadow, pleasant hover */
+.profile-page .btn {
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 600;
+  border: none;
+  box-shadow: var(--shadow-sm);
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+}
+.profile-page .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
+.profile-page .btn:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
+
+/* Brand theming for buttons */
+.profile-page .btn-primary { background: var(--accent); color: #1f1f1f; }
+.profile-page .btn-primary:hover { background: #ffdf33; color: #1a1a1a; }
+.profile-page .btn-secondary { background: var(--accent-2); color: #1f1f1f; }
+.profile-page .btn-secondary:hover { background: #ffa773; color: #1a1a1a; }
+.profile-page .btn-danger { background: #ef5350; color: #fff; }
+.profile-page .btn-danger:hover { background: #e04845; }
+
+/* Action bar alignment */
+.profile-page .d-flex.gap-2 { gap: 10px !important; }
+.profile-page .d-flex { align-items: center; }
+
+/* Utility blocks (future sections) */
+.profile-info, .order-history, .wishlist {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+  .profile-page { margin-top: 24px; }
+  .profile-page .table th { width: 42%; }
+  .profile-page .btn { width: 100%; }
+  .profile-page .d-flex { flex-direction: column; align-items: stretch; }
+}

@@ -1,0 +1,106 @@
+/* CSS riêng cho sidebar admin */
+
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    background: #222;
+    color: #FFD600;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    overflow-y: auto;
+}
+.admin-sidebar .sidebar-heading {
+    text-align: center;
+    padding: 20px 0 10px 0;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #FFD600;
+    letter-spacing: 2px;
+}
+.admin-sidebar .sidebar-heading span {
+    font-size: 1.1rem;
+    color: #FFD600;
+    font-weight: bold;
+}
+.admin-sidebar .sidebar-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 22px;
+}
+.admin-sidebar .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 12px;
+    color: #fff;
+    background: none;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    font-weight: 500;
+    border: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.admin-sidebar .sidebar-item span {
+    font-size: 1.1em;
+    margin-right: 4px;
+}
+.admin-sidebar .sidebar-item:hover, .admin-sidebar .sidebar-active {
+    background: #FFD600;
+    color: #222 !important;
+    font-weight: bold;
+    box-shadow: 0 2px 8px #FFD60033;
+}
+.admin-sidebar .sidebar-item:hover span, .admin-sidebar .sidebar-active span {
+    color: #222 !important;
+}
+
+/* Nội dung được đẩy bằng padding-left của body.admin trong admin.css */
+/* Loại bỏ các offset cũ để tránh bị double-shift */
+
+@media (max-width: 900px) {
+    .admin-sidebar {
+        width: 180px;
+    }
+    /* Offset được xử lý bởi body.admin padding-left (admin.css) */
+}
+
+@media (max-width: 600px) {
+    .admin-sidebar {
+        position: static;
+        width: 100vw;
+        height: auto;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+    /* Offset được xử lý bởi body.admin padding-left (admin.css) */
+}
+
+.container.admin-users-page {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 0 0;
+}
+
+.container.admin-users-page table {
+    margin: 0;
+    width: 100%;
+}
+
+.container.admin-users-page h2 {
+    margin-left: 0;
+    text-align: left;
+}

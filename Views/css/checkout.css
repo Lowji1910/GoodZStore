@@ -1,0 +1,352 @@
+/* Checkout Page Styles - Sử dụng CSS Variables từ layout.css */
+
+main {
+    max-width: 1200px;
+    margin: 32px auto;
+    padding: 0 24px;
+}
+
+main h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 32px;
+    text-align: center;
+    position: relative;
+    padding-bottom: 16px;
+}
+
+main h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-gold) 0%, var(--accent-color) 100%);
+    border-radius: 2px;
+}
+
+/* Grid Container */
+.row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 32px;
+    margin-top: 32px;
+}
+
+/* Checkout Form */
+.checkout-form {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 2px solid var(--border-color);
+}
+
+.checkout-form input,
+.checkout-form select,
+.checkout-form textarea {
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border-color);
+    font-size: 1.05rem;
+    transition: var(--transition-fast);
+    background: var(--white);
+}
+
+.checkout-form input:focus,
+.checkout-form select:focus,
+.checkout-form textarea:focus {
+    border-color: var(--primary-gold);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.checkout-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.btn-order {
+    background: var(--primary-gold);
+    color: var(--primary-dark);
+    font-size: 1.2rem;
+    padding: 16px 40px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-normal);
+    border: none;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.btn-order:hover {
+    background: var(--accent-color);
+    color: var(--white);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-gold);
+}
+
+/* Checkout Summary */
+.checkout-summary {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 32px;
+    border: 3px solid var(--primary-gold);
+    position: sticky;
+    top: 90px;
+}
+
+.checkout-summary h3 {
+    margin-bottom: 24px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--primary-gold);
+    border-bottom: 2px solid var(--primary-gold);
+    padding-bottom: 12px;
+}
+
+/* Checkout Items với ảnh */
+.checkout-items {
+    margin-bottom: 24px;
+}
+
+.checkout-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    border: 1px solid var(--gray-700);
+    transition: var(--transition-fast);
+}
+
+.checkout-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary-gold);
+}
+
+.checkout-item-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--gray-700);
+}
+
+.checkout-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.checkout-item-info h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--white);
+    margin: 0 0 8px 0;
+}
+
+.checkout-item-info .item-size {
+    font-size: 0.9rem;
+    color: var(--gray-300);
+    margin: 4px 0;
+}
+
+.checkout-item-info .item-size strong {
+    color: var(--primary-gold);
+    font-weight: 700;
+}
+
+.checkout-item-info .item-quantity {
+    font-size: 0.95rem;
+    color: var(--gray-300);
+    margin: 4px 0;
+}
+
+.checkout-item-info .item-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-gold);
+    margin: 0;
+}
+
+.checkout-summary > p {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0;
+    font-size: 1.15rem;
+    color: var(--white);
+    font-weight: 600;
+}
+
+.checkout-summary > p span {
+    color: var(--primary-gold);
+    font-weight: 700;
+}
+
+.checkout-summary > p b {
+    color: var(--primary-gold);
+    font-size: 1.4rem;
+}
+
+/* Voucher Form */
+.checkout-summary form {
+    background: var(--white);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    margin: 16px 0;
+}
+
+.checkout-summary .form-control {
+    padding: 10px 14px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+}
+
+.checkout-summary .btn {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: var(--transition-fast);
+    border: none;
+    cursor: pointer;
+}
+
+.checkout-summary .btn-warning {
+    background: var(--primary-gold);
+    color: var(--primary-dark);
+}
+
+.checkout-summary .btn-warning:hover {
+    background: var(--accent-color);
+    color: var(--white);
+}
+
+.checkout-summary .btn-secondary {
+    background: var(--gray-600);
+    color: var(--white);
+}
+
+.checkout-summary .btn-secondary:hover {
+    background: var(--gray-700);
+}
+
+/* Alert */
+.alert {
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+.alert-danger {
+    background: #fee;
+    color: #c33;
+    border: 2px solid #fcc;
+}
+
+.alert-info {
+    background: #e7f3ff;
+    color: #0066cc;
+    border: 2px solid #b3d9ff;
+}
+
+/* Empty Cart Message */
+main > p {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    padding: 60px 24px;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-color);
+}
+
+main > p a {
+    color: var(--primary-gold);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+main > p a:hover {
+    color: var(--accent-color);
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .row {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .checkout-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 0 16px;
+    }
+    
+    main h2 {
+        font-size: 1.8rem;
+    }
+    
+    .checkout-form {
+        padding: 28px 20px;
+    }
+    
+    .checkout-summary {
+        padding: 24px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    main h2 {
+        font-size: 1.5rem;
+    }
+    
+    .checkout-form {
+        padding: 24px 16px;
+        gap: 16px;
+    }
+    
+    .checkout-form input,
+    .checkout-form select,
+    .checkout-form textarea {
+        padding: 12px 14px;
+        font-size: 1rem;
+    }
+    
+    .btn-order {
+        padding: 14px 32px;
+        font-size: 1.1rem;
+    }
+    
+    .checkout-summary {
+        padding: 20px 16px;
+    }
+    
+    .checkout-summary form {
+        flex-direction: column;
+    }
+    
+    .checkout-summary .btn {
+        width: 100%;
+        margin-top: 8px;
+    }
+}

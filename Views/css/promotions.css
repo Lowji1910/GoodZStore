@@ -1,0 +1,30 @@
+/* Promotions Page Styles */
+.promo-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin: 32px 0;
+}
+.promo-card {
+    background: #fffbe6;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px #eee;
+    padding: 24px 32px;
+    min-width: 260px;
+    flex: 1;
+    text-align: left;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.promo-card:hover {
+    box-shadow: 0 8px 32px #ffd700;
+    transform: scale(1.04);
+}
+.promo-code {
+    background: #ff6f61;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    display: inline-block;
+    margin-top: 12px;
+}
