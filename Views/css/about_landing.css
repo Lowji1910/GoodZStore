@@ -1,0 +1,21 @@
+/* About landing page styles */
+.landing-hero .hero{ background: linear-gradient(90deg, rgba(245,197,24,0.04), rgba(255,255,255,0)); padding-top:60px; padding-bottom:60px; }
+.landing-hero .display-4{ font-weight:800; color:#111827; }
+.landing-hero .lead{ color:#374151; }
+.landing-hero .btn-primary{ background:#f5c518; border-color:#f5c518; color:#111; font-weight:700; }
+.landing-hero .btn-outline-secondary{ border-color:#111; color:#111; }
+
+.values .card{ border:none; border-radius:12px; box-shadow:0 8px 24px rgba(16,24,40,0.04); }
+.values .icon{ font-size:28px; }
+
+.mission img{ max-width:100%; }
+
+.team-card{ border:none; box-shadow:0 8px 18px rgba(16,24,40,0.04); border-radius:10px; }
+.team-card .avatar{ font-size:30px; }
+
+.cta{ background: linear-gradient(90deg,#f5c518,#ffd66b); }
+.cta .btn-light{ background:#fff; color:#111; font-weight:700; }
+
+@media (max-width:767px){
+  .landing-hero .display-4{ font-size:28px; }
+}

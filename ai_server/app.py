@@ -18,6 +18,9 @@ DB_CONFIG = dict(
     cursorclass=pymysql.cursors.DictCursor
 )
 
+# Base URL để tạo đường dẫn sản phẩm trong câu trả lời AI (có thể cấu hình trong .env)
+SITE_BASE_URL = os.getenv("SITE_URL", "http://127.0.0.1/GoodZStore/Views/Users/")
+
 def get_conn():
     return pymysql.connect(**DB_CONFIG)
 
@@ -95,29 +98,106 @@ def parse_budget_vnd(text: str) -> int:
     if not text:
         return 0
     t = text.lower()
-    # patterns like 199k, 200k
-    m = re.search(r"(\d+[\.,]?\d*)\s*(k|ngan|ngàn|nghin|nghìn|triệu|tr|m|mio)?", t)
-    if not m:
-        return 0
-    num_str = m.group(1).replace('.', '').replace(',', '')
-    try:
-        val = float(num_str)
-    except ValueError:
-        return 0
-    unit = (m.group(2) or '').strip()
-    if unit in ['k', 'ngan', 'ngàn', 'nghin', 'nghìn']:
-        return int(val * 1000)
-    if unit in ['triệu', 'tr', 'm', 'mio']:
-        return int(val * 1_000_000)
-    # if no unit but looks like a full VND amount
-    return int(val)
+    # Avoid matching units that are measurements (kg, cm, m followed by digit like 1m7)
+    # Look for explicit money markers or common money units. Use word boundary and ensure unit is not followed by a digit (to avoid 1m7).
+    # Patterns to match:
+    #  - 199k, 200k, 200kđ, 200k đ
+    #  - 200.000, 200,000
+    #  - 2 triệu, 2tr, 2trieu
+    money_patterns = [
+        r"(\d+[\.,]?\d*)\s*(k|kđ|k đ|ngan|ngàn|nghin|nghìn)\b",
+        r"(\d+[\.,]?\d*)\s*(triệu|trieu|tr|mio)\b",
+        r"(\d{1,3}(?:[\.,]\d{3})+)\s*(đ|d|vnd)?\b",
+        r"(\d+)\s*(đ|d|vnd)\b",
+    ]
 
-def build_deterministic_text(recommendations, budget, size_suggestion=None, size_reason=None, vouchers=None):
+    for pat in money_patterns:
+        m = re.search(pat, t)
+        if m:
+            num_str = m.group(1).replace('.', '').replace(',', '')
+            try:
+                val = float(num_str)
+            except ValueError:
+                return 0
+            unit = (m.group(2) or '').strip() if len(m.groups()) >= 2 else ''
+            if unit in ['k', 'kđ', 'k đ', 'ngan', 'ngàn', 'nghin', 'nghìn']:
+                return int(val * 1000)
+            if unit in ['triệu', 'trieu', 'tr', 'mio']:
+                return int(val * 1_000_000)
+            # if explicit VND sign or number with separators, interpret as full VND
+            return int(val)
+
+    # As a fallback, try to find plain numbers that look like currency (>=1000)
+    m2 = re.search(r"(\d{4,}[\d\.,]*)", t)
+    if m2:
+        num_str = m2.group(1).replace('.', '').replace(',', '')
+        try:
+            return int(float(num_str))
+        except Exception:
+            return 0
+
+    return 0
+
+def parse_measurements(text: str) -> dict:
+    """Extract simple measurements from text: weight in kg and height in cm (or meters like 1m7).
+    Returns dict with possible keys: 'weight_kg', 'height_cm', 'size'."""
+    out = {}
+    if not text:
+        return out
+    t = text.lower()
+    # weight: 50kg, 50 kg
+    m = re.search(r"(\d{2,3})\s*(kg|kilog|kilo)?\b", t)
+    if m:
+        try:
+            out['weight_kg'] = int(m.group(1))
+        except Exception:
+            pass
+    # height: 170cm, 170 cm, 1m7, 1.7m
+    m2 = re.search(r"(\d{2,3})\s*(cm)\b", t)
+    if m2:
+        try:
+            out['height_cm'] = int(m2.group(1))
+        except Exception:
+            pass
+    else:
+        m3 = re.search(r"(\d(?:[\.,]?\d)?)\s*m\b", t)
+        if m3:
+            try:
+                val = float(m3.group(1).replace(',', '.'))
+                out['height_cm'] = int(val * 100)
+            except Exception:
+                pass
+        else:
+            # patterns like 1m7 (common in Vietnamese)
+            m4 = re.search(r"1m(\d{1})\b", t)
+            if m4:
+                try:
+                    cm = 100 + int(m4.group(1)) * 10
+                    out['height_cm'] = cm
+                except Exception:
+                    pass
+    # size like 'size M' or just 'M'
+    m5 = re.search(r"size\s*([xsmlXL]{1,3})\b", t)
+    if m5:
+        out['size'] = m5.group(1).upper()
+
+    return out
+
+def build_deterministic_text(recommendations, budget, size_suggestion=None, size_reason=None, vouchers=None, include_links=True):
     parts = []
     if size_suggestion:
         parts.append(f"Gợi ý size: {size_suggestion}{' (' + size_reason + ')' if size_reason else ''}.")
     if recommendations:
-        names = ", ".join([r.get('name', '') for r in recommendations[:3] if r.get('name')])
+        # Include product links if allowed. Format: Name (link) or just Name
+        items = []
+        for r in recommendations[:3]:
+            name = r.get('name', '')
+            url = r.get('url') or (r.get('slug') and f"{SITE_BASE_URL}product.php?id={r.get('id')}")
+            if include_links and url:
+                items.append(f"{name} ({url})")
+            else:
+                items.append(name)
+        names = ", ".join([i for i in items if i])
         if names:
             lead = "Gợi ý phù hợp" + (" theo ngân sách" if budget else "")
             parts.append(f"{lead}: {names}.")
@@ -129,9 +209,23 @@ def build_deterministic_text(recommendations, budget, size_suggestion=None, size
             parts.append(f"Mã giảm giá hiện có: {codes}.")
     out = " ".join(parts).strip()
     if not out:
-        # Safe default without naming products
-        out = "Mình có thể lọc sản phẩm theo nhu cầu hoặc ngân sách của bạn. Hãy cho mình biết từ khóa (ví dụ: áo thun, quần jean) hoặc mức giá mong muốn để mình gợi ý chính xác hơn."
+        # Safe default without naming products — be polite and invite next input
+        out = "Mình có thể lọc sản phẩm theo nhu cầu hoặc ngân sách của bạn. Bạn muốn mình tìm theo từ khóa hay theo mức giá cụ thể nào?"
+    # Add a polite closing to make replies friendlier
+    if out:
+        out = out.strip()
+        if not out.endswith('?') and not out.endswith('!'):
+            out = out + " Bạn cần mình giúp gì thêm?"
     return out
+
+def is_greeting(text: str) -> bool:
+    if not text:
+        return False
+    t = text.strip().lower()
+    # If message is short and matches common greetings
+    if len(t) <= 12 and re.match(r'^(hi|hello|chao|chào|xin chào|hey|helo)\b', t):
+        return True
+    return False
 
 # Very simple keyword extraction -> patterns to search in product names
 def detect_keywords(text: str):
@@ -150,6 +244,77 @@ def detect_keywords(text: str):
     found = sorted(set(found), key=lambda x: (-len(x), x))
     return found[:3]
 
+def detect_intent(text: str) -> str:
+    """Rough intent detection: returns one of 'greeting', 'ask_size', 'ask_recommend', 'ask_voucher', 'ask_budget', 'other'"""
+    if not text:
+        return 'other'
+    t = text.lower()
+    # greeting
+    if is_greeting(t):
+        return 'greeting'
+    # size questions
+    if re.search(r"\b(size|mặc size|mặc cỡ|nên mặc|bao nhiêu kg|kg cao|cao|cân nặng|mấy size|mặc size gì)\b", t) or re.search(r"\b\d+\s*kg\b", t) or re.search(r"\b\d+\s*cm\b", t) or 'kg' in t or 'cm' in t:
+        return 'ask_size'
+    # ask for recommendations explicitly
+    if re.search(r"\b(gợi ý|gợi ý 3|gợi ý 2|gợi ý mấy|gợi ý cho tôi|gợi ý sản phẩm|gợi ý 3 sản phẩm|gợi ý 3 món)\b", t):
+        return 'ask_recommend'
+    # ask about vouchers/promotions
+    if re.search(r"\b(voucher|mã giảm giá|ưu đãi|khuyến mãi|ưu dai|ưu đãi)\b", t):
+        return 'ask_voucher'
+    # budget-related
+    if parse_budget_vnd(t) > 0:
+        return 'ask_budget'
+    return 'other'
+
+CATEGORY_KEYWORDS = {
+    'cong so': ['công sở', 'đi làm', 'công sở', 'văn phòng', 'đi làm'],
+    'thoitrang_nam': ['nam', 'nữ', 'unisex'],
+}
+
+def map_category_from_text(text: str):
+    t = text.lower()
+    for cat, kws in CATEGORY_KEYWORDS.items():
+        for k in kws:
+            if k in t:
+                return cat
+    return None
+
+def general_size_advice(measurements: dict):
+    """Return (size, reason) as plain advice when product sizes not available.
+    Uses simple height->size mapping as fallback."""
+    h = measurements.get('height_cm')
+    w = measurements.get('weight_kg')
+    bmi = None
+    try:
+        if h and w:
+            bmi = float(w) / ((float(h) / 100.0) ** 2)
+    except Exception:
+        bmi = None
+
+    if h:
+        if h < 165:
+            s = 'S'
+        elif h < 175:
+            s = 'M'
+        elif h < 185:
+            s = 'L'
+        else:
+            s = 'XL'
+        reason = f'Chiều cao {h}cm phù hợp size {s}'
+        if bmi is not None:
+            reason += f' (BMI khoảng {bmi:.1f})'
+        return s, reason
+
+    if w:
+        # very rough weight-based fallback
+        if w < 55:
+            return 'S', f'Cân nặng {w}kg thường phù hợp size S-M'
+        elif w < 70:
+            return 'M', f'Cân nặng {w}kg thường phù hợp size M-L'
+        else:
+            return 'L', f'Cân nặng {w}kg thường phù hợp size L-XL'
+    return None, 'Không có đủ thông tin để gợi ý size'
+
 def suggest_size_rule(sizes, measurements: dict):
     """Suggest size based on measurements"""
     if not sizes:
@@ -162,22 +327,43 @@ def suggest_size_rule(sizes, measurements: dict):
             if str(r['size_name']).upper() == s and r.get('stock_quantity', 0) > 0:
                 return r['size_name'], "Kích thước bạn chọn còn hàng"
     
-    # Height-based suggestion
+    # Height-based suggestion with BMI adjustment when weight provided
     h = measurements.get('height_cm')
+    w = measurements.get('weight_kg')
+    bmi = None
+    try:
+        if h and w:
+            bmi = float(w) / ((float(h) / 100.0) ** 2)
+    except Exception:
+        bmi = None
+
     if h:
-        if h < 160:
+        # prefer mappings: <165 S, 165-174 M, 175-184 L, >=185 XL
+        if h < 165:
             pref = ['S', 'XS', '36', '37']
-        elif h < 170:
+        elif h < 175:
             pref = ['M', 'S', '38', '39']
-        elif h < 180:
+        elif h < 185:
             pref = ['L', 'M', '40', '41']
         else:
             pref = ['XL', 'XXL', '42', '43']
-            
+
+        # Adjust preference based on BMI: underweight -> prefer one size smaller; overweight -> one size larger
+        if bmi is not None:
+            if bmi < 18.5:
+                # move preferences towards smaller sizes by appending smaller alternatives first
+                pref = [p for p in pref if p not in ['XL','XXL']]  # minor heuristic
+            elif bmi >= 25:
+                # overweight: prefer larger sizes
+                pref = ['L', 'XL', 'XXL'] + pref
+
         for p in pref:
             for r in sizes:
                 if str(r['size_name']).upper().startswith(str(p)) and r.get('stock_quantity', 0) > 0:
-                    return r['size_name'], f"Gợi ý dựa trên chiều cao {h}cm"
+                    reason = f"Gợi ý dựa trên chiều cao {h}cm"
+                    if bmi is not None:
+                        reason += f" và BMI khoảng {bmi:.1f}"
+                    return r['size_name'], reason
     
     # Fallback: Most in-stock size
     if sizes:
@@ -213,7 +399,14 @@ def recommend_products(conn, product_id, limit=4):
                 LIMIT %s
             """, (product['category_id'], product_id, product['price'], limit))
             
-            return cur.fetchall()
+            rows = cur.fetchall()
+            # Attach product URL for frontend/backend to include links
+            for r in rows:
+                try:
+                    r['url'] = f"{SITE_BASE_URL}product.php?id={r.get('id')}"
+                except Exception:
+                    r['url'] = None
+            return rows
             
     except Exception as e:
         print(f"Error in recommend_products: {e}")
@@ -248,7 +441,13 @@ def chat():
         size_suggestion = None
         size_reason = None
         if ctx.get('sizes'):
-            size_suggestion, size_reason = suggest_size_rule(ctx['sizes'], metadata)
+            # Merge measurements from metadata (if provided) with any measurements parsed from the message text
+            parsed = parse_measurements(message)
+            measurements = {}
+            if isinstance(metadata.get('measurements'), dict):
+                measurements.update(metadata.get('measurements'))
+            measurements.update(parsed)
+            size_suggestion, size_reason = suggest_size_rule(ctx['sizes'], measurements)
         
         # Get product recommendations
         recommendations = []
@@ -301,6 +500,14 @@ def chat():
                         print(f"[AI] Keyword recommendations count: {len(recommendations) if recommendations else 0}")
                     except Exception as e:
                         print(f"Keyword recommendation error: {e}")
+
+            # Ensure each recommendation has a URL field for frontend/AI text
+            try:
+                for r in (recommendations or []):
+                    if not r.get('url'):
+                        r['url'] = f"{SITE_BASE_URL}product.php?id={r.get('id')}"
+            except Exception:
+                pass
         
         # Prepare prompt for Gemini
         system_instruction = """
@@ -426,36 +633,218 @@ CSDL `goodzstore` gồm các bảng chính:
         Câu hỏi: {message}
         """
         
-        # Call Gemini API
-        try:
-            model = genai.GenerativeModel('gemini-flash-latest')
-            response = model.generate_content(prompt)
-            bot_text = response.text
-        except Exception as gemini_error:
-            # Fallback response nếu Gemini lỗi
-            print(f"Gemini API Error: {gemini_error}")
-            bot_text = "Xin chào! Mình là trợ lý AI của GoodZStore. "
-            
-            if size_suggestion:
-                bot_text += f"Dựa trên thông số của bạn, mình gợi ý size {size_suggestion}. "
-            
-            if ctx.get('vouchers'):
-                voucher_codes = ", ".join([v['code'] for v in ctx['vouchers']])
-                bot_text += f"Hiện tại shop đang có các mã giảm giá: {voucher_codes}. "
-            
-            bot_text += "Bạn có thể xem thêm các sản phẩm tương tự bên dưới nhé!"
-        
-        # Enforce deterministic text to avoid invented names
+        # Determine budget early for deterministic logic
         budget_for_debug = parse_budget_vnd(message) if not metadata.get('product_id') else 0
-        deterministic = build_deterministic_text(
-            recommendations=recommendations,
-            budget=budget_for_debug,
-            size_suggestion=size_suggestion,
-            size_reason=size_reason,
-            vouchers=ctx.get('vouchers', [])
-        )
-        if deterministic:
-            bot_text = deterministic
+
+        # Only mention vouchers and product links in the assistant's first reply for a given session or user.
+        include_vouchers = True
+        try:
+            with conn.cursor() as cur:
+                if session_id:
+                    cur.execute("SELECT COUNT(*) AS cnt FROM ai_conversations WHERE session_id=%s AND direction='bot'", (session_id,))
+                    row = cur.fetchone()
+                    if row and row.get('cnt', 0) > 0:
+                        include_vouchers = False
+                elif valid_user_id:
+                    cur.execute("SELECT COUNT(*) AS cnt FROM ai_conversations WHERE user_id=%s AND direction='bot'", (valid_user_id,))
+                    row = cur.fetchone()
+                    if row and row.get('cnt', 0) > 0:
+                        include_vouchers = False
+        except Exception as e:
+            print(f"Error checking prior bot messages: {e}")
+            # If DB check fails, default to including vouchers (safer fallback)
+            include_vouchers = True
+
+        vouchers_for_output = ctx.get('vouchers', []) if include_vouchers else []
+
+        # If message is a simple greeting, do not treat it as substantive: do not include vouchers or links
+        greet = is_greeting(message)
+        if greet:
+            include_vouchers = False
+            vouchers_for_output = []
+
+        # Fetch prior bot recommendations (if any) to include in context (without links)
+        prior_recommendations = []
+        try:
+            with conn.cursor() as cur:
+                if session_id:
+                    cur.execute("SELECT metadata FROM ai_conversations WHERE session_id=%s AND direction='bot' ORDER BY id DESC LIMIT 1", (session_id,))
+                    row = cur.fetchone()
+                    if row and row.get('metadata'):
+                        try:
+                            meta = json.loads(row.get('metadata'))
+                            prior_recommendations = meta.get('recommendations', []) if isinstance(meta, dict) else []
+                        except Exception:
+                            prior_recommendations = []
+                elif valid_user_id:
+                    cur.execute("SELECT metadata FROM ai_conversations WHERE user_id=%s AND direction='bot' ORDER BY id DESC LIMIT 1", (valid_user_id,))
+                    row = cur.fetchone()
+                    if row and row.get('metadata'):
+                        try:
+                            meta = json.loads(row.get('metadata'))
+                            prior_recommendations = meta.get('recommendations', []) if isinstance(meta, dict) else []
+                        except Exception:
+                            prior_recommendations = []
+        except Exception as e:
+            print(f"Error fetching prior recommendations: {e}")
+
+        # Detect intent early to choose fast-paths
+        intent = detect_intent(message)
+
+        # Fast-path: voucher question
+        if intent == 'ask_voucher':
+            # If we are allowed to include vouchers in this reply
+            if vouchers_for_output and len(vouchers_for_output) > 0:
+                parts = []
+                for v in vouchers_for_output:
+                    if v.get('discount_type') == 'percentage':
+                        disc = f"{int(v.get('discount_value',0))}%"
+                    else:
+                        try:
+                            disc = f"{int(v.get('discount_value',0)):,}đ"
+                        except Exception:
+                            disc = str(v.get('discount_value',''))
+                    min_order = v.get('min_order_amount', 0)
+                    min_text = f" (Đơn tối thiểu {int(min_order):,}đ)" if min_order and int(min_order) > 0 else ""
+                    parts.append(f"{v.get('code')} — Giảm {disc}{min_text}")
+                bot_text = "Hiện shop có các mã giảm giá sau: " + "; ".join(parts) + ". Bạn muốn mình hướng dẫn cách áp dụng không?"
+            else:
+                bot_text = "Hiện tại shop không có mã giảm giá đang hoạt động hoặc mình không thể hiển thị mã ngay bây giờ. Bạn muốn mình kiểm tra theo điều kiện (ví dụ: đơn tối thiểu hoặc loại sản phẩm) không?"
+
+            result = {
+                "text": bot_text,
+                "session_id": session_id,
+                "size_suggestion": None,
+                "recommendations": [],
+                "vouchers": vouchers_for_output,
+                "prev_recommendations": prior_recommendations,
+                "debug": {"intent": intent}
+            }
+
+            bot_metadata = {"recommendations": [], "vouchers_included": bool(vouchers_for_output)}
+            save_conv(conn, valid_user_id, session_id, 'bot', bot_text, None, bot_metadata)
+            add_training_entry(conn, 'conversation', None, json.dumps({"user": message, "bot": bot_text, "metadata": bot_metadata}), label=None)
+            return jsonify(result)
+
+        # Fast-path: size question
+        if intent == 'ask_size':
+            # Use parsed measurements and metadata to suggest size
+            parsed = parse_measurements(message)
+            measurements = {}
+            if isinstance(metadata.get('measurements'), dict):
+                measurements.update(metadata.get('measurements'))
+            measurements.update(parsed)
+
+            if ctx.get('sizes'):
+                size_suggestion, size_reason = suggest_size_rule(ctx['sizes'], measurements)
+                bot_text = f"Với thông tin của bạn ({measurements.get('height_cm','?')}cm, {measurements.get('weight_kg','?')}kg), gợi ý size: {size_suggestion}. {size_reason}. Bạn muốn mình so sánh thêm với các mẫu cụ thể không?"
+            else:
+                # No product-specific sizes: give general advice
+                gs, gr = general_size_advice(measurements)
+                if gs:
+                    bot_text = f"Với thông tin {measurements.get('height_cm','?')}cm và {measurements.get('weight_kg','?')}kg, mình gợi ý size {gs}. {gr}. Bạn muốn mình lọc sản phẩm theo size này không?"
+                else:
+                    bot_text = "Mình cần chiều cao hoặc cân nặng để gợi ý size chính xác hơn — bạn cho mình biết chiều cao (cm) và cân nặng (kg) nhé?"
+
+            # Prepare response and save
+            result = {
+                "text": bot_text,
+                "session_id": session_id,
+                "size_suggestion": {"size": size_suggestion, "reason": size_reason} if size_suggestion else ( {"size": gs, "reason": gr} if gs else None ),
+                "recommendations": [],
+                "vouchers": [],
+                "prev_recommendations": prior_recommendations,
+                "debug": {"intent": intent}
+            }
+            bot_metadata = {"recommendations": [], "vouchers_included": False}
+            save_conv(conn, valid_user_id, session_id, 'bot', bot_text, None, bot_metadata)
+            add_training_entry(conn, 'conversation', None, json.dumps({"user": message, "bot": bot_text, "metadata": bot_metadata}), label=None)
+            return jsonify(result)
+
+        # Fast-path: explicit recommendation request (e.g., 'gợi ý 3 sản phẩm công sở')
+        if intent == 'ask_recommend':
+            cat = map_category_from_text(message)
+            recs = []
+            try:
+                with conn.cursor() as cur:
+                    if cat == 'cong so':
+                        # find products in categories containing 'công sở' or office-related; use categories table mapping if available
+                        cur.execute("SELECT id FROM categories WHERE name LIKE %s LIMIT 1", ("%công%",))
+                        crow = cur.fetchone()
+                        if crow:
+                            cur.execute(
+                                "SELECT p.id, p.name, p.slug, p.price, pi.image_url FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_main=1 WHERE p.category_id=%s AND p.stock_quantity>0 ORDER BY p.is_featured DESC LIMIT 3",
+                                (crow.get('id'),)
+                            )
+                            recs = cur.fetchall()
+                    # fallback: try keyword detection
+                    if not recs:
+                        keys = detect_keywords(message)
+                        if keys:
+                            like_clauses = " OR ".join(["p.name LIKE %s"] * len(keys))
+                            params = [f"%{k}%" for k in keys]
+                            cur.execute(f"SELECT p.id,p.name,p.slug,p.price,pi.image_url FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_main=1 WHERE ({like_clauses}) AND p.stock_quantity>0 ORDER BY p.is_featured DESC LIMIT 3", params)
+                            recs = cur.fetchall()
+            except Exception as e:
+                print(f"Recommend fast-path error: {e}")
+
+            # Ensure urls
+            try:
+                for r in (recs or []):
+                    if not r.get('url'):
+                        r['url'] = f"{SITE_BASE_URL}product.php?id={r.get('id')}"
+            except Exception:
+                pass
+
+            # Build polite reply
+            if recs and len(recs) > 0:
+                names = ", ".join([f"{r.get('name')} ({r.get('url')})" for r in recs[:3]])
+                bot_text = f"Mình gợi ý những mẫu phù hợp: {names}. Bạn muốn xem chi tiết mẫu nào?"
+            else:
+                bot_text = "Mình chưa tìm thấy sản phẩm phù hợp ngay bây giờ — bạn muốn mình lọc theo giá hoặc theo từ khóa cụ thể không?"
+
+            result = {"text": bot_text, "session_id": session_id, "recommendations": recs, "vouchers": vouchers_for_output, "prev_recommendations": prior_recommendations, "debug": {"intent": intent}}
+            bot_metadata = {"recommendations": [{"id": r.get('id'), "name": r.get('name'), "url": r.get('url')} for r in (recs or [])], "vouchers_included": bool(vouchers_for_output)}
+            save_conv(conn, valid_user_id, session_id, 'bot', bot_text, None, bot_metadata)
+            add_training_entry(conn, 'conversation', None, json.dumps({"user": message, "bot": bot_text, "metadata": bot_metadata}), label=None)
+            return jsonify(result)
+
+        # If this is the first bot reply for this session/user, include links; otherwise, don't include links but provide prior recs in context
+        include_links = include_vouchers
+
+        # If this is a greeting, prefer a friendly greeting reply and skip voucher/link insertion
+        if greet:
+            bot_text = "Chào bạn! Mình là trợ lý AI của GoodZStore — mình có thể giúp tìm sản phẩm, gợi ý size hoặc kiểm tra khuyến mãi. Bạn muốn mình giúp gì hôm nay?"
+            # Build a polite deterministic fallback if needed later, but for greeting return early after saving metadata (no vouchers/links)
+            deterministic = None
+
+        if not greet:
+            deterministic = build_deterministic_text(
+                recommendations=recommendations or prior_recommendations,
+                budget=budget_for_debug,
+                size_suggestion=size_suggestion,
+                size_reason=size_reason,
+                vouchers=vouchers_for_output,
+                include_links=include_links
+            )
+
+            if deterministic:
+                bot_text = deterministic
+            else:
+                # If we couldn't build a deterministic reply, call Gemini as fallback
+                try:
+                    model = genai.GenerativeModel('gemini-flash-latest')
+                    response = model.generate_content(prompt)
+                    bot_text = response.text
+                except Exception as gemini_error:
+                    print(f"Gemini API Error: {gemini_error}")
+                    bot_text = "Xin chào! Mình là trợ lý AI của GoodZStore. "
+                    if size_suggestion:
+                        bot_text += f"Dựa trên thông số của bạn, mình gợi ý size {size_suggestion}. "
+                    if vouchers_for_output:
+                        voucher_codes = ", ".join([v['code'] for v in vouchers_for_output])
+                        bot_text += f"Hiện tại shop đang có các mã giảm giá: {voucher_codes}. "
+                    bot_text += "Bạn có thể xem thêm các sản phẩm tương tự bên dưới nhé!"
 
         # Build response
         result = {
@@ -463,7 +852,8 @@ CSDL `goodzstore` gồm các bảng chính:
             "session_id": session_id,
             "size_suggestion": {"size": size_suggestion, "reason": size_reason} if size_suggestion else None,
             "recommendations": recommendations,
-            "vouchers": ctx.get('vouchers', []),
+            "vouchers": vouchers_for_output,
+            "prev_recommendations": prior_recommendations,
             "debug": {
                 "product_id": product_id,
                 "budget": budget_for_debug,
@@ -471,13 +861,19 @@ CSDL `goodzstore` gồm các bảng chính:
             }
         }
         
-        # Save bot response
-        save_conv(conn, valid_user_id, session_id, 'bot', bot_text)
+        # Save bot response and include metadata (recommendations shown and whether vouchers were included)
+        bot_metadata = {
+            "recommendations": [
+                {"id": r.get('id'), "name": r.get('name'), "url": r.get('url')} for r in (recommendations or [])
+            ],
+            "vouchers_included": include_vouchers
+        }
+        save_conv(conn, valid_user_id, session_id, 'bot', bot_text, None, bot_metadata)
         add_training_entry(
             conn, 
             'conversation', 
             None, 
-            json.dumps({"user": message, "bot": bot_text, "metadata": metadata}),
+            json.dumps({"user": message, "bot": bot_text, "metadata": bot_metadata}),
             label=None
         )
         

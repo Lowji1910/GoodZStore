@@ -341,6 +341,15 @@ async function sendMessage() {
             });
             recsHtml += '</ul></div>';
             appendHtmlToChat(recsHtml);
+        } else if (data.prev_recommendations && data.prev_recommendations.length > 0) {
+            // If no new recommendations, show previous ones suggested in this session
+            let recsHtml = '<div class="chat-recommendations"><strong>🛍️ Sản phẩm đã gợi ý trước đó:</strong><ul>';
+            data.prev_recommendations.forEach(r => {
+                const href = r.url ? r.url : `product.php?id=${r.id}`;
+                recsHtml += `<li><a href="${href}">${r.name}</a></li>`;
+            });
+            recsHtml += '</ul></div>';
+            appendHtmlToChat(recsHtml);
         }
         
         // Show vouchers if available
@@ -376,7 +385,14 @@ function appendToChat(who, text, className = '', isLoading = false) {
     const msgId = 'msg-' + Date.now();
     msgDiv.id = msgId;
     msgDiv.className = `chat-message ${className}`;
-    msgDiv.innerHTML = `<strong>${who}:</strong> <span>${text}</span>`;
+    // Convert plain URLs in text to clickable links
+    function linkify(inputText) {
+        const urlPattern = /(https?:\/\/[^\s]+)/g;
+        return inputText.replace(urlPattern, function(url) {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        });
+    }
+    msgDiv.innerHTML = `<strong>${who}:</strong> <span>${linkify(text)}</span>`;
     box.appendChild(msgDiv);
     box.scrollTop = box.scrollHeight;
     return msgId;

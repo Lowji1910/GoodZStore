@@ -1,8 +1,12 @@
 
 <?php
-include_once __DIR__ . '/../header.php';
+ob_start();
+session_start();
 require_once __DIR__ . '/../../Models/db.php';
 require_once __DIR__ . '/../../Models/cart_functions.php';
+
+// Include header
+require_once __DIR__ . '/../../Views/header.php';
 
 // Khởi tạo giỏ hàng trong session nếu chưa có
 // Format: $_SESSION['cart'] = [['product_id' => 1, 'size_id' => 2, 'quantity' => 3], ...]

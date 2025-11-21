@@ -86,6 +86,8 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
   <link rel="stylesheet" href="/GoodZStore/Views/css/header.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Bootstrap CSS (CDN) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-6m0p1Y2e0eYwq3M0k6Jz5x1Q9aYQ3h5jQ2k1rH8Q9D2kF6z7Gx9V2k1Q6Zp7j2bA" crossorigin="anonymous">
 </header>
 
 <script>

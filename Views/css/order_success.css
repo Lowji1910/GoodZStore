@@ -1,0 +1,191 @@
+/* =========================================
+   GoodZStore Theme - Order Success Page
+   Style: Modern Light (Clean & Bright)
+   ========================================= */
+
+:root {
+    /* Thay đổi bảng màu sang tông SÁNG */
+    --gs-bg: #f8f9fa;           /* Màu nền xám rất nhạt (thay cho màu đen) */
+    --gs-card-bg: #ffffff;      /* Card màu trắng tinh */
+    --gs-accent: #f5c518;       /* Vàng thương hiệu */
+    --gs-accent-hover: #e0b10d; 
+    --gs-text: #1f2937;         /* Chữ màu đen xám (dễ đọc hơn đen tuyền) */
+    --gs-text-secondary: #6b7280; /* Chữ phụ màu xám */
+    --gs-border: #e5e7eb;       /* Viền xám nhạt */
+    --gs-shadow: 0 4px 25px rgba(0, 0, 0, 0.05); /* Bóng đổ nhẹ nhàng */
+}
+
+/* Global Reset */
+body {
+    background-color: var(--gs-bg);
+    color: var(--gs-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Layout Container */
+main {
+    max-width: 850px;
+    margin: 40px auto;
+    padding: 0 20px;
+    text-align: center;
+    animation: slideUp 0.5s ease-out;
+}
+
+/* Tiêu đề */
+h2.order-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #111; /* Màu đen đậm cho tiêu đề */
+    letter-spacing: -0.5px;
+}
+
+.order-subtitle {
+    color: var(--gs-text-secondary);
+    font-size: 16px;
+    margin-bottom: 32px;
+}
+
+/* Order Card - Nền Trắng */
+.order-card {
+    background: var(--gs-card-bg);
+    border: 1px solid var(--gs-border);
+    border-radius: 16px;
+    padding: 40px; /* Tăng padding cho thoáng */
+    text-align: left;
+    box-shadow: var(--gs-shadow);
+    position: relative;
+}
+
+/* Thanh trang trí màu vàng trên đầu card */
+.order-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gs-accent);
+    border-radius: 16px 16px 0 0;
+}
+
+/* Thông tin đơn hàng (Mã đơn, Trạng thái) */
+.order-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--gs-border); /* Viền xám nhạt */
+    margin-bottom: 20px;
+    color: var(--gs-text);
+    font-weight: 500;
+}
+
+/* Badge (Nút nhỏ hiển thị mã/trạng thái) */
+.order-meta strong, 
+.badge-status {
+    background: #fff8db; /* Nền vàng rất nhạt */
+    color: #946c00;      /* Chữ vàng đậm */
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    border: 1px solid rgba(245, 197, 24, 0.3);
+}
+
+/* Danh sách sản phẩm */
+.checkout-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.checkout-items li {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px dashed var(--gs-border); /* Đường kẻ đứt nét ngăn cách các món */
+    color: var(--gs-text);
+    font-size: 15px;
+}
+
+.checkout-items li:last-child {
+    border-bottom: none;
+}
+
+/* Tổng tiền */
+.order-summary {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 2px solid var(--gs-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafafa; /* Nền xám nhẹ cho phần tổng tiền */
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.order-summary .label {
+    color: var(--gs-text-secondary);
+    font-weight: 500;
+}
+
+.order-summary .total-price {
+    color: #111;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+/* Nút bấm */
+.actions {
+    margin-top: 32px;
+    display: flex;
+    justify-content: flex-end; /* Đẩy nút về bên phải */
+    gap: 12px;
+    align-items: center;
+}
+
+/* Nút chính (Vàng) */
+a.back-home {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 28px;
+    background-color: var(--gs-accent);
+    color: #000;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    box-shadow: 0 4px 10px rgba(245, 197, 24, 0.4);
+}
+
+a.back-home:hover {
+    background-color: var(--gs-accent-hover);
+    transform: translateY(-2px);
+}
+
+/* Animation */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .order-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .actions {
+        justify-content: center;
+    }
+    a.back-home {
+        width: 100%;
+    }
+}

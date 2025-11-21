@@ -1,6 +1,156 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../Models/db.php';
+require_once __DIR__ . '/../../Models/vnpay_helper.php';
+
+// Basic validation
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $_SESSION['checkout_error'] = 'Phương thức không hợp lệ.';
+    header('Location: checkout.php');
+    exit;
+}
+
+$full_name = trim($_POST['full_name'] ?? '');
+$address = trim($_POST['address'] ?? '');
+$phone = trim($_POST['phone'] ?? '');
+$payment = trim($_POST['payment'] ?? 'cod');
+$note = trim($_POST['note'] ?? '');
+$voucher_code = strtoupper(trim($_POST['voucher_code'] ?? ''));
+
+if ($full_name === '' || $address === '' || $phone === '') {
+    $_SESSION['checkout_error'] = 'Vui lòng điền đầy đủ thông tin giao hàng.';
+    header('Location: checkout.php');
+    exit;
+}
+
+if (empty($_SESSION['cart'])) {
+    $_SESSION['checkout_error'] = 'Giỏ hàng trống.';
+    header('Location: checkout.php');
+    exit;
+}
+
+// Recompute totals server-side
+$items = [];
+$total = 0.0;
+foreach ($_SESSION['cart'] as $cartItem) {
+    $product_id = intval($cartItem['product_id']);
+    $size_id = intval($cartItem['size_id'] ?? 0);
+    $qty = intval($cartItem['quantity'] ?? 1);
+
+    $sql = "SELECT p.id, p.name, p.price FROM products p WHERE p.id = ? LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('i', $product_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($row = $res->fetch_assoc()) {
+        $price = (float)$row['price'];
+        $size_name = null;
+        if ($size_id > 0) {
+            $s = $conn->prepare('SELECT size_name FROM product_sizes WHERE id = ? LIMIT 1');
+            $s->bind_param('i', $size_id);
+            $s->execute();
+            $sr = $s->get_result();
+            if ($srow = $sr->fetch_assoc()) $size_name = $srow['size_name'];
+        }
+        $subtotal = $price * $qty;
+        $items[] = [
+            'product_id' => $product_id,
+            'size_id' => $size_id,
+            'size_name' => $size_name,
+            'quantity' => $qty,
+            'price' => $price,
+            'subtotal' => $subtotal
+        ];
+        $total += $subtotal;
+    }
+}
+
+$discount = 0.0;
+if ($voucher_code !== '') {
+    $stmtV = $conn->prepare('SELECT * FROM vouchers WHERE code = ? LIMIT 1');
+    $stmtV->bind_param('s', $voucher_code);
+    $stmtV->execute();
+    $vr = $stmtV->get_result();
+    if ($vr && $vr->num_rows > 0) {
+        $v = $vr->fetch_assoc();
+        $now = new DateTime('now');
+        $start = new DateTime($v['start_date']);
+        $end = new DateTime($v['end_date']);
+        $minAmount = (float)($v['min_order_amount'] ?? 0);
+        $usageLimit = (int)($v['usage_limit'] ?? 0);
+        $usedCount = (int)($v['used_count'] ?? 0);
+        $validTime = ($now >= $start && $now <= $end);
+        $validMin = ($total >= $minAmount);
+        $validUsage = ($usageLimit == 0 || $usedCount < $usageLimit);
+        if ($validTime && $validMin && $validUsage) {
+            if ($v['discount_type'] === 'percentage') {
+                $discount = $total * ((float)$v['discount_value'] / 100.0);
+                if (!is_null($v['max_discount'])) { $discount = min($discount, (float)$v['max_discount']); }
+            } else { $discount = (float)$v['discount_value']; }
+            $discount = max(0, min($discount, $total));
+        }
+    }
+}
+
+$finalTotal = max(0, $total - $discount);
+
+// Insert order
+$user_id = isset($_SESSION['user']['id']) ? intval($_SESSION['user']['id']) : 0;
+$status = ($payment === 'bank') ? 'pending' : 'pending';
+$shipping_address = $address;
+$payment_method = $payment;
+
+$stmtO = $conn->prepare('INSERT INTO orders (user_id, total_amount, status, shipping_address, payment_method) VALUES (?, ?, ?, ?, ?)');
+if (!$stmtO) {
+    $_SESSION['checkout_error'] = 'Lỗi hệ thống khi tạo đơn hàng.';
+    header('Location: checkout.php');
+    exit;
+}
+$stmtO->bind_param('idsss', $user_id, $finalTotal, $status, $shipping_address, $payment_method);
+if (!$stmtO->execute()) {
+    $_SESSION['checkout_error'] = 'Không thể lưu đơn hàng: ' . $stmtO->error;
+    header('Location: checkout.php');
+    exit;
+}
+$order_id = $conn->insert_id;
+
+// Insert order items
+$stmtItem = $conn->prepare('INSERT INTO order_items (order_id, product_id, size_id, size_name, quantity, price) VALUES (?, ?, ?, ?, ?, ?)');
+foreach ($items as $it) {
+    $p_order_id = $order_id;
+    $p_product_id = intval($it['product_id']);
+    $p_size_id = $it['size_id'] > 0 ? intval($it['size_id']) : 0;
+    $p_size_name = $it['size_name'] ?? null;
+    $p_quantity = intval($it['quantity']);
+    $p_price = floatval($it['price']);
+    $stmtItem->bind_param('iiisid', $p_order_id, $p_product_id, $p_size_id, $p_size_name, $p_quantity, $p_price);
+    $stmtItem->execute();
+}
+
+// Update voucher usage count if applied
+if ($voucher_code !== '') {
+    $conn->query('UPDATE vouchers SET used_count = used_count + 1 WHERE code = "' . $conn->real_escape_string($voucher_code) . '"');
+}
+
+// Clear cart if COD, otherwise redirect to VNPAY
+if ($payment === 'bank') {
+    // Build VNPAY URL and redirect
+    $desc = 'Thanh toan don #' . $order_id;
+    $vnpUrl = build_vnpay_url($order_id, $finalTotal, $desc);
+    // Redirect to VNPAY (or show error URL)
+    header('Location: ' . $vnpUrl);
+    exit;
+} else {
+    // COD: mark order as pending and clear cart
+    unset($_SESSION['cart']);
+    header('Location: order_success.php?order_id=' . $order_id);
+    exit;
+}
+
+?>
+<?php
+session_start();
+require_once __DIR__ . '/../../Models/db.php';
 require_once __DIR__ . '/../../Models/notifications.php';
 
 // Ensure cart exists
