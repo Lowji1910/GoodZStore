@@ -1,194 +1,222 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 ?>
-<!-- Views/header.php -->
-<header id="main-header">
-  <div class="header-container">
-    <!-- Left: Logo -->
-    <div class="logo">
-      <span class="logo-text">GoodZ</span><span class="logo-highlight">Store</span>
-    </div>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoodZStore - Thời trang chính hãng</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/header.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/ai_chat.css">
+</head>
+<body>
 
-    <!-- Center: Main menu -->
-    <nav class="main-nav">
-      <ul class="nav-list">
-        <li><a href="/GoodZStore/Views/Users/index.php">Trang chủ</a></li>
-        <li>
-          <a href="/GoodZStore/Views/Users/products.php">Danh mục ▼</a>
-          <div class="dropdown-menu">
-            <?php
-            require_once __DIR__ . '/../Models/db.php';
-            $sql = "SELECT * FROM categories ORDER BY name";
-            $result = $conn->query($sql);
-            if ($result && $result->num_rows > 0):
-              while ($category = $result->fetch_assoc()): ?>
-                <a href="/GoodZStore/Views/Users/category.php?id=<?= $category['id'] ?>">
-                  <?= htmlspecialchars($category['name']) ?>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg fixed-top glass-effect">
+    <div class="container">
+        <!-- Brand -->
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/GoodZStore/Views/Users/index.php">
+            <span class="fw-bold fs-4 text-dark">GoodZ<span class="text-warning">Store</span></span>
+        </a>
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu -->
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fw-medium">
+                <li class="nav-item">
+                    <a class="nav-link" href="/GoodZStore/Views/Users/index.php">Trang chủ</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Danh mục</a>
+                    <ul class="dropdown-menu border-0 shadow-lg rounded-3 mt-2">
+                        <?php
+                        require_once __DIR__ . '/../Models/db.php';
+                        $sql = "SELECT * FROM categories ORDER BY name";
+                        $result = $conn->query($sql);
+                        if ($result && $result->num_rows > 0):
+                            while ($category = $result->fetch_assoc()): ?>
+                                <li><a class="dropdown-item py-2" href="/GoodZStore/Views/Users/category.php?id=<?= $category['id'] ?>"><?= htmlspecialchars($category['name']) ?></a></li>
+                            <?php endwhile;
+                        endif; ?>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="/GoodZStore/Views/Users/products.php">Sản phẩm</a></li>
+                <li class="nav-item"><a class="nav-link" href="/GoodZStore/Views/Users/about.php">Giới thiệu</a></li>
+                <li class="nav-item"><a class="nav-link" href="/GoodZStore/Views/Users/contact.php">Liên hệ</a></li>
+            </ul>
+
+            <!-- Icons -->
+            <div class="d-flex align-items-center gap-3">
+                <!-- Search -->
+                <div class="position-relative d-none d-lg-block">
+                    <input type="text" class="form-control rounded-pill pe-5" placeholder="Tìm kiếm..." style="width: 200px; font-size: 0.9rem;" onkeydown="if(event.key==='Enter') window.location.href='/GoodZStore/Views/Users/products.php?q='+encodeURIComponent(this.value)">
+                    <i class="fas fa-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                </div>
+
+                <!-- Cart -->
+                <?php
+                require_once __DIR__ . '/../Models/cart_functions.php';
+                $cart_count = getCartItemCount();
+                ?>
+                <a href="/GoodZStore/Views/Users/cart.php" class="position-relative text-dark fs-5">
+                    <i class="fas fa-shopping-bag"></i>
+                    <?php if($cart_count > 0): ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size: 0.6rem;">
+                            <?= $cart_count ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
-              <?php endwhile;
-            endif; ?>
-          </div>
-        </li>
-        <li><a href="/GoodZStore/Views/Users/products.php">Sản phẩm</a></li>
-        <li><a href="/GoodZStore/Views/Users/contact.php">Liên hệ</a></li>
-        <li><a href="/GoodZStore/Views/Users/about.php">Giới thiệu</a></li>
-      </ul>
-    </nav>
 
-    <!-- Right: Tools -->
-    <div class="quick-tools">
-      <div class="search-box">
-        <input type="text" placeholder="Tìm kiếm..." class="search-input">
-        <span class="search-icon">&#128269;</span>
-      </div>
+                <!-- Notifications -->
+                <?php if (isset($_SESSION['user'])): ?>
+                    <div class="dropdown">
+                        <a href="#" class="text-dark fs-5 position-relative" id="userNotiBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="far fa-bell"></i>
+                            <span id="userNotiBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; display:none;">0</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3 mt-2" aria-labelledby="userNotiBtn" style="min-width:320px; max-height:400px; overflow-y:auto;">
+                            <li><h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                                Thông báo
+                                <button id="markAllReadUser" class="btn btn-link btn-sm text-decoration-none p-0" style="font-size:0.8rem;">Đã đọc tất cả</button>
+                            </h6></li>
+                            <div id="userNotiList">
+                                <li class="px-3 py-2 text-muted text-center">Đang tải...</li>
+                            </div>
+                        </ul>
+                    </div>
+                <?php endif; ?>
 
-      <?php
-      require_once __DIR__ . '/../Models/cart_functions.php';
-      $cart_count = getCartItemCount();
-      ?>
-      <a href="/GoodZStore/Views/Users/cart.php" class="cart-link">
-        <i class="fas fa-shopping-cart"></i>
-        <span id="cart-badge"><?= $cart_count ?></span>
-      </a>
-
-      <?php if (isset($_SESSION['user_id'])): ?>
-        <a href="/GoodZStore/Views/Users/profile.php" class="user-link">👤</a>
-      <?php else: ?>
-        <a href="/GoodZStore/Views/Users/auth.php" class="user-link">Đăng nhập</a>
-      <?php endif; ?>
+                <!-- User -->
+                <?php if (isset($_SESSION['user'])): ?>
+                    <div class="dropdown">
+                        <a href="#" class="text-dark fs-5" data-bs-toggle="dropdown">
+                            <i class="far fa-user-circle"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3 mt-2">
+                            <li><h6 class="dropdown-header">Xin chào, <?= htmlspecialchars($_SESSION['user']['full_name']) ?></h6></li>
+                            <li><a class="dropdown-item" href="/GoodZStore/Views/Users/profile.php"><i class="fas fa-id-card me-2"></i>Hồ sơ</a></li>
+                            <li><a class="dropdown-item" href="/GoodZStore/Views/Users/orders.php"><i class="fas fa-box me-2"></i>Đơn hàng</a></li>
+                            <?php if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'admin'): ?>
+                                <li><a class="dropdown-item text-primary" href="/GoodZStore/Views/Admins/admin_dashboard.php"><i class="fas fa-user-shield me-2"></i>Quản trị viên</a></li>
+                            <?php endif; ?>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/GoodZStore/Views/Users/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                <?php else: ?>
+                    <a href="/GoodZStore/Views/Users/auth.php" class="btn btn-primary-custom btn-sm">Đăng nhập</a>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
-  </div>
+</nav>
 
-  <!-- Chatbot Button -->
-  <button id="chatbot-btn"
-    style="position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#2563eb;color:#fff;border:none;box-shadow:0 8px 20px rgba(0,0,0,.25);cursor:pointer;z-index:2147483647;display:flex;align-items:center;justify-content:center;font-size:22px;">
-    💬
-  </button>
+<!-- Spacer for fixed header -->
+<div style="height: 80px;"></div>
 
-  <!-- Chat Panel -->
-  <div id="ai-global-chat"
-    style="display:none;position:fixed;right:20px;bottom:90px;width:340px;height:420px;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:2147483646;overflow:hidden;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#111827;color:#fff;">
-      <div style="font-weight:600;">GoodZ AI</div>
-      <button id="ai-close" style="background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;">×</button>
-    </div>
-    <div id="ai-chat-messages" style="height:300px;overflow-y:auto;padding:10px;background:#f9fafb;"></div>
-    <div style="padding:10px;border-top:1px solid #eee;background:#fff;display:flex;gap:6px;">
-      <input id="ai-input" type="text" placeholder="Hỏi trợ lý thời trang..." style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;">
-      <button id="ai-send" style="background:#2563eb;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;">Gửi</button>
-    </div>
-    <div id="ai-extras" style="max-height:160px;overflow:auto;padding:10px;background:#fff;border-top:1px solid #eee;display:none;"></div>
-    <div style="padding:8px 10px;background:#fff;border-top:1px solid #eee;font-size:12px;color:#6b7280;">
-      🤖 AI có thể tư vấn size, gợi ý sản phẩm, và mã giảm giá.
-    </div>
-  </div>
+<!-- AI Chat Widget -->
+<button id="chatbot-btn" title="Chat với AI">
+    <i class="fas fa-robot"></i>
+</button>
 
-  <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
-  <link rel="stylesheet" href="/GoodZStore/Views/css/header.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Bootstrap CSS (CDN) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-6m0p1Y2e0eYwq3M0k6Jz5x1Q9aYQ3h5jQ2k1rH8Q9D2kF6z7Gx9V2k1Q6Zp7j2bA" crossorigin="anonymous">
-</header>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  // Hover menu
-  const menuItem = document.querySelector('#main-header nav ul li:nth-child(2)');
-  const dropdown = menuItem.querySelector('.dropdown-menu');
-  menuItem.addEventListener('mouseenter', () => dropdown.style.display = 'block');
-  menuItem.addEventListener('mouseleave', () => dropdown.style.display = 'none');
+document.addEventListener('DOMContentLoaded', function() {
+    // User Notifications Logic
+    const notiBadge = document.getElementById('userNotiBadge');
+    const notiList = document.getElementById('userNotiList');
+    const markAllBtn = document.getElementById('markAllReadUser');
 
-  // Search redirect
-  const searchInput = document.querySelector('#main-header .search-input');
-  if (searchInput) {
-    searchInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        const q = encodeURIComponent(this.value.trim());
-        const base = '/GoodZStore/Views/Users/products.php';
-        window.location.href = q ? `${base}?q=${q}` : base;
-      }
-    });
-  }
+    if (notiBadge && notiList) {
+        async function fetchUserNotifications() {
+            try {
+                const res = await fetch('/GoodZStore/Views/Users/notifications_api.php?limit=10', {cache: 'no-store'});
+                const data = await res.json();
+                
+                if (data.unread && data.unread > 0) {
+                    notiBadge.style.display = 'inline-block';
+                    notiBadge.textContent = data.unread;
+                } else {
+                    notiBadge.style.display = 'none';
+                }
 
-  // Chatbot setup
-  const aiBtn = document.getElementById('chatbot-btn');
-  const aiPanel = document.getElementById('ai-global-chat');
-  const aiClose = document.getElementById('ai-close');
-  const aiSend = document.getElementById('ai-send');
-  const aiInput = document.getElementById('ai-input');
-  const aiBox = document.getElementById('ai-chat-messages');
-  const aiExtras = document.getElementById('ai-extras');
-  let aiSessionId = null;
-  const aiUserId = <?php echo isset($_SESSION['user']['id']) ? intval($_SESSION['user']['id']) : (isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 'null'); ?>;
+                notiList.innerHTML = '';
+                if (data.items && data.items.length) {
+                    data.items.forEach(it => {
+                        const li = document.createElement('li');
+                        li.className = 'dropdown-item p-2 border-bottom';
+                        li.style.whiteSpace = 'normal';
+                        if (it.is_read == 0) li.style.backgroundColor = '#f0f8ff';
 
-  function aiAppend(who, text) {
-    const d = document.createElement('div');
-    d.style.margin = '6px 0';
-    d.innerHTML = `<strong>${who}:</strong> <span>${text}</span>`;
-    aiBox.appendChild(d);
-    aiBox.scrollTop = aiBox.scrollHeight;
-  }
+                        li.innerHTML = `
+                            <div style="cursor:pointer;" onclick="markUserNotiRead(${it.id}, '${it.link || ''}')">
+                                <div class="fw-bold small">${it.type}</div>
+                                <div class="small text-dark">${it.message}</div>
+                                <small class="text-muted" style="font-size:0.7rem;">${it.created_at}</small>
+                            </div>
+                        `;
+                        notiList.appendChild(li);
+                    });
+                } else {
+                    notiList.innerHTML = '<li class="dropdown-item text-muted text-center small">Không có thông báo mới</li>';
+                }
+            } catch (e) {
+                console.error('Noti Error:', e);
+            }
+        }
 
-  function aiAppendHTML(html) {
-    aiExtras.style.display = 'block';
-    const d = document.createElement('div');
-    d.style.margin = '6px 0';
-    d.innerHTML = html;
-    aiExtras.appendChild(d);
-  }
+        // Initial fetch and interval
+        fetchUserNotifications();
+        setInterval(fetchUserNotifications, 15000);
 
-  async function aiSendMsg() {
-    const txt = aiInput.value.trim();
-    if (!txt) return;
-    aiAppend('Bạn', txt);
-    aiInput.value = '';
-    const loadingId = `ld-${Date.now()}`;
-    aiAppend('AI', `<span id="${loadingId}">Đang suy nghĩ...</span>`);
-    try {
-      const payload = { message: txt, user_id: aiUserId, session_id: aiSessionId, metadata: {} };
-      const res = await fetch('http://127.0.0.1:5000/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const j = await res.json();
-      aiSessionId = j.session_id || aiSessionId;
-      const el = document.getElementById(loadingId);
-      if (el) el.parentElement.remove();
-      aiAppend('AI', j.text || '');
-      if (j.size_suggestion && j.size_suggestion.size) {
-        aiAppendHTML(`<div><b>📏 Gợi ý size:</b> ${j.size_suggestion.size}<br><small>${j.size_suggestion.reason || ''}</small></div>`);
-      }
-      if (j.recommendations && j.recommendations.length) {
-        aiAppendHTML('<div><b>🛍️ Gợi ý:</b><ul>' +
-          j.recommendations.map(r => `<li><a href="/GoodZStore/Views/Users/product.php?id=${r.id}">${r.name} - ${parseInt(r.price).toLocaleString('vi-VN')}đ</a></li>`).join('') +
-          '</ul></div>');
-      }
-      if (j.vouchers && j.vouchers.length) {
-        aiAppendHTML('<div><b>🎟️ Voucher:</b><ul>' +
-          j.vouchers.map(v => {
-            const disc = v.discount_type === 'percentage' ? `${v.discount_value}%` : `${parseInt(v.discount_value).toLocaleString('vi-VN')}đ`;
-            const min = v.min_order_amount > 0 ? ` (tối thiểu ${parseInt(v.min_order_amount).toLocaleString('vi-VN')}đ)` : '';
-            return `<li><code>${v.code}</code> - Giảm ${disc}${min}</li>`;
-          }).join('') + '</ul></div>');
-      }
-    } catch (e) {
-      const el = document.getElementById(loadingId);
-      if (el) el.parentElement.remove();
-      aiAppend('AI', '❌ Xin lỗi, tôi gặp sự cố kết nối.');
+        // Mark all read
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', async (e) => {
+                e.stopPropagation(); // Prevent dropdown close
+                await fetch('/GoodZStore/Views/Users/notifications_api.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'action=mark_all_read'
+                });
+                fetchUserNotifications();
+            });
+        }
+        
+        // Global function for onclick
+        window.markUserNotiRead = async function(id, link) {
+            try {
+                await fetch('/GoodZStore/Views/Users/notifications_api.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'action=mark_one_read&id=' + id
+                });
+                
+                // Update Badge immediately
+                let count = parseInt(notiBadge.textContent) || 0;
+                if (count > 0) {
+                    count--;
+                    notiBadge.textContent = count;
+                    if (count === 0) notiBadge.style.display = 'none';
+                }
+
+                if (link) window.location.href = link;
+                else fetchUserNotifications();
+            } catch (e) { console.error(e); }
+        };
     }
-  }
-
-  // Event bindings
-  aiBtn.addEventListener('click', () => {
-    aiPanel.style.display = aiPanel.style.display === 'none' ? 'block' : 'none';
-  });
-  aiClose.addEventListener('click', () => aiPanel.style.display = 'none');
-  aiSend.addEventListener('click', aiSendMsg);
-  aiInput.addEventListener('keypress', e => {
-    if (e.key === 'Enter') aiSendMsg();
-  });
 });
 </script>
-<!-- AI_WIDGET_DEBUG: v1 -->
-<?php echo "<!-- HEADER_PATH: " . __FILE__ . " -->"; ?>

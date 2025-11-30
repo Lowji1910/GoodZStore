@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../../Models/db.php';
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: auth.php');
     exit;
 }
 $user_id = $_SESSION['user_id'];

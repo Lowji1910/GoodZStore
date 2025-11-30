@@ -48,10 +48,10 @@ if errorlevel 1 (
     echo [OK] Dependencies already installed
 )
 
-REM Check if .env file exists
-if not exist ".env" (
-    echo [WARNING] .env file not found!
-    echo Please create .env file with your configuration
+REM Check if shared root .env file exists
+if not exist "..\.env" (
+    echo [WARNING] ..\.env file not found!
+    echo Please create the shared .env file at the repo root before launching
     echo See README.md for details
     pause
     exit /b 1

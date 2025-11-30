@@ -1,0 +1,73 @@
+# Environment variables (sensitive credentials)
+.env
+.env.local
+.env.*.local
+
+# User uploads (product images, profile pictures, etc.)
+uploads/*
+!uploads/.gitkeep
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# PHP dependencies (if using Composer)
+vendor/
+composer.lock
+
+# Python virtual environment and dependencies
+ai_server/venv/
+ai_server/__pycache__/
+ai_server/*.pyc
+ai_server/.pytest_cache/
+ai_server/*.egg-info
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+logs/
+*.err
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Mac
+__MACOSX
+
+# Windows
+desktop.ini
+
+# Git
+.git/
+
+# Database dumps (if any)
+*.sql.gz
+*.sql.zip
+backup/
+
+# Session files
+sessions/
+
+# Cache
+cache/
+*.cache

@@ -1,12 +1,14 @@
 import os, json, time
 import re
+from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pymysql
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-load_dotenv()
+ROOT_ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(ROOT_ENV_PATH)
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 DB_CONFIG = dict(
@@ -194,7 +196,7 @@ def build_deterministic_text(recommendations, budget, size_suggestion=None, size
             name = r.get('name', '')
             url = r.get('url') or (r.get('slug') and f"{SITE_BASE_URL}product.php?id={r.get('id')}")
             if include_links and url:
-                items.append(f"{name} ({url})")
+                items.append(f"[{name}]({url})")
             else:
                 items.append(name)
         names = ", ".join([i for i in items if i])
@@ -234,7 +236,7 @@ def detect_keywords(text: str):
     t = text.lower()
     candidates = [
         'áo', 'áo thun', 'thun', 'sơ mi', 'so mi', 'áo sơ mi', 'jean', 'jeans', 'quần', 'quần jean', 'quần short',
-        'kaki', 'giày', 'sneaker', 'túi', 'pijama', 'đầm', 'váy', 'khoác'
+        'kaki', 'giày', 'sneaker', 'túi', 'pijama', 'đầm', 'váy', 'khoác', 'nam', 'nữ', 'nu'
     ]
     found = []
     for c in candidates:
@@ -243,6 +245,15 @@ def detect_keywords(text: str):
     # Deduplicate and prefer longer phrases
     found = sorted(set(found), key=lambda x: (-len(x), x))
     return found[:3]
+
+def detect_gender(text: str):
+    """Detect gender intent from text. Returns 'Male', 'Female', 'Unisex' or None."""
+    t = text.lower()
+    if re.search(r'\b(nam|trai|man|boy)\b', t):
+        return 'Male'
+    if re.search(r'\b(nữ|nu|gái|woman|girl|váy|đầm)\b', t):
+        return 'Female'
+    return None
 
 def detect_intent(text: str) -> str:
     """Rough intent detection: returns one of 'greeting', 'ask_size', 'ask_recommend', 'ask_voucher', 'ask_budget', 'other'"""
@@ -265,6 +276,8 @@ def detect_intent(text: str) -> str:
     if parse_budget_vnd(t) > 0:
         return 'ask_budget'
     return 'other'
+
+
 
 CATEGORY_KEYWORDS = {
     'cong so': ['công sở', 'đi làm', 'công sở', 'văn phòng', 'đi làm'],
@@ -412,6 +425,33 @@ def recommend_products(conn, product_id, limit=4):
         print(f"Error in recommend_products: {e}")
         return []
 
+def get_chat_history(conn, session_id, limit=6):
+    """Lấy lịch sử chat gần nhất để AI hiểu ngữ cảnh"""
+    history = []
+    if not session_id:
+        return history
+        
+    try:
+        with conn.cursor() as cur:
+            # Lấy các tin nhắn gần nhất (trừ tin nhắn hiện tại đang xử lý)
+            cur.execute("""
+                SELECT direction, message 
+                FROM ai_conversations 
+                WHERE session_id = %s 
+                ORDER BY id DESC 
+                LIMIT %s
+            """, (session_id, limit))
+            
+            rows = cur.fetchall()
+            # Đảo ngược lại để đúng thứ tự thời gian (Cũ -> Mới)
+            for row in reversed(rows):
+                role = "User" if row['direction'] == 'user' else "Bot"
+                history.append(f"{role}: {row['message']}")
+    except Exception as e:
+        print(f"Error fetching history: {e}")
+        
+    return "\n".join(history)
+
 @app.route("/api/chat", methods=["POST"])
 def chat():
     """Main chat endpoint"""
@@ -455,47 +495,68 @@ def chat():
             # Similar items to current product
             recommendations = recommend_products(conn, product_id, limit=4)
         else:
-            # Try budget-based recommendations from message
+            # Try budget-based recommendations from message, respecting keywords if present
             budget = parse_budget_vnd(message)
+            gender_filter = detect_gender(message)
+            
             if budget and budget > 0:
                 try:
-                    print(f"[AI] Budget parsed: {budget}")
+                    print(f"[AI] Budget parsed: {budget}, Gender: {gender_filter}")
+                    keys = detect_keywords(message)
+                    
+                    sql = """
+                        SELECT p.id, p.name, p.slug, p.price, pi.image_url
+                        FROM products p
+                        LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_main = 1
+                        WHERE p.price <= %s AND p.stock_quantity > 0
+                    """
+                    params = [budget]
+                    
+                    if gender_filter:
+                        sql += " AND (p.gender = %s OR p.gender = 'Unisex')"
+                        params.append(gender_filter)
+
+                    if keys:
+                        print(f"[AI] Budget + Keywords: {keys}")
+                        # Use AND for stricter filtering (e.g. "áo" AND "nam")
+                        like_clauses = " AND ".join(["p.name LIKE %s"] * len(keys))
+                        sql += f" AND ({like_clauses})"
+                        params.extend([f"%{k}%" for k in keys])
+                    
+                    sql += " ORDER BY p.is_featured DESC, p.price ASC LIMIT 3"
+                    
                     with conn.cursor() as cur:
-                        cur.execute(
-                            """
-                            SELECT p.id, p.name, p.slug, p.price, pi.image_url
-                            FROM products p
-                            LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_main = 1
-                            WHERE p.price <= %s AND p.stock_quantity > 0
-                            ORDER BY p.is_featured DESC, p.price ASC
-                            LIMIT 3
-                            """,
-                            (budget,)
-                        )
+                        cur.execute(sql, params)
                         recommendations = cur.fetchall()
                     print(f"[AI] Budget recommendations count: {len(recommendations) if recommendations else 0}")
                 except Exception as e:
                     print(f"Budget recommendation error: {e}")
-            # If no budget recs, try keyword-based search
-            if not recommendations:
+
+            # If no budget recs (or no budget), try keyword-based search
+            if not recommendations and not budget:
                 keys = detect_keywords(message)
+                gender_filter = detect_gender(message)
                 if keys:
                     try:
-                        print(f"[AI] Keyword search: {keys}")
-                        like_clauses = " OR ".join(["p.name LIKE %s"] * len(keys))
+                        print(f"[AI] Keyword search: {keys}, Gender: {gender_filter}")
+                        # Use AND for stricter filtering
+                        like_clauses = " AND ".join(["p.name LIKE %s"] * len(keys))
                         params = [f"%{k}%" for k in keys]
-                        with conn.cursor() as cur:
-                            cur.execute(
-                                f"""
+                        
+                        sql = f"""
                                 SELECT p.id, p.name, p.slug, p.price, pi.image_url
                                 FROM products p
                                 LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_main = 1
                                 WHERE ({like_clauses}) AND p.stock_quantity > 0
-                                ORDER BY p.is_featured DESC, p.price ASC
-                                LIMIT 3
-                                """,
-                                params
-                            )
+                                """
+                        if gender_filter:
+                            sql += " AND (p.gender = %s OR p.gender = 'Unisex')"
+                            params.append(gender_filter)
+                            
+                        sql += " ORDER BY p.is_featured DESC, p.price ASC LIMIT 3"
+
+                        with conn.cursor() as cur:
+                            cur.execute(sql, params)
                             recommendations = cur.fetchall()
                         print(f"[AI] Keyword recommendations count: {len(recommendations) if recommendations else 0}")
                     except Exception as e:
@@ -530,13 +591,14 @@ CSDL `goodzstore` gồm các bảng chính:
 ---
 
 ### 🪄 **Nguyên tắc trả lời**
-1. Luôn nói **ngắn gọn, tự nhiên, thân thiện** (2–4 câu).  
-2. Không hiển thị dữ liệu SQL thô, chỉ diễn giải thân thiện.  
-3. Khi backend gửi danh sách `recommendations` (lấy từ `products`), chỉ được nêu **tối đa 3 tên sản phẩm** trong danh sách này.  
-4. Nếu `recommendations` rỗng → không nêu sản phẩm cụ thể, chỉ tư vấn về chất liệu, kiểu dáng, cách phối hoặc ngân sách.  
-5. Khi người dùng hỏi về **size**, dùng dữ liệu trong cột `size` của bảng `products`, hoặc dựa theo `users.height`, `users.weight` nếu có.  
-6. Khi có `vouchers` đang hoạt động (`status = 'active'` và `start_date <= NOW() <= end_date`), liệt kê **đúng mã và mô tả ưu đãi**; không tự bịa.  
-7. Nếu người dùng đã từng mua sản phẩm (`orders`, `order_details`), có thể gợi ý dựa trên **phong cách hoặc danh mục tương tự** (`category_id` giống nhau).
+1. **KHÔNG** bao giờ tự xưng là "AI:", "Bot:", "Trợ lý:" ở đầu câu trả lời. Hãy trả lời trực tiếp.
+2. Luôn nói **ngắn gọn, tự nhiên, thân thiện** (2–4 câu).  
+3. Không hiển thị dữ liệu SQL thô, chỉ diễn giải thân thiện.  
+4. Khi backend gửi danh sách `recommendations`, hãy trình bày tên sản phẩm dưới dạng link Markdown: `[Tên sản phẩm](URL)`.
+5. Nếu `recommendations` rỗng → không nêu sản phẩm cụ thể, chỉ tư vấn về chất liệu, kiểu dáng, cách phối hoặc ngân sách.  
+6. Khi người dùng hỏi về **size**, dùng dữ liệu trong cột `size` của bảng `products`, hoặc dựa theo `users.height`, `users.weight` nếu có.  
+7. Khi có `vouchers` đang hoạt động (`status = 'active'` và `start_date <= NOW() <= end_date`), liệt kê **đúng mã và mô tả ưu đãi**; không tự bịa.  
+8. Nếu người dùng đã từng mua sản phẩm (`orders`, `order_details`), có thể gợi ý dựa trên **phong cách hoặc danh mục tương tự** (`category_id` giống nhau).
 
 ---
 
@@ -565,6 +627,7 @@ CSDL `goodzstore` gồm các bảng chính:
 ---
 
 ### ❌ **Không được làm**
+- **KHÔNG** bắt đầu câu bằng "AI:", "Bot:", "GoodZ AI:".
 - Không bịa tên sản phẩm, voucher, hoặc giá.
 - Không hiển thị truy vấn SQL hoặc dữ liệu thô.
 - Không bình luận chủ quan về người dùng.
@@ -604,11 +667,14 @@ CSDL `goodzstore` gồm các bảng chính:
 
         """
         
+        # [THÊM MỚI] Lấy lịch sử chat
+        history_text = get_chat_history(conn, session_id, limit=6)
+
         # Build context text
         context_parts = []
         if ctx.get('product'):
             p = ctx['product']
-            context_parts.append(f"Sản phẩm hiện tại: {p['name']} - {p['price']:,}đ")
+            context_parts.append(f"Người dùng ĐANG XEM sản phẩm: {p['name']} (Giá: {p['price']:,}đ). \nLƯU Ý QUAN TRỌNG: Mọi câu hỏi của người dùng (ví dụ: 'nó có tốt không', 'chất liệu gì', 'tư vấn size') đều mặc định là hỏi về sản phẩm này, trừ khi người dùng nói rõ tên sản phẩm khác.")
             
             # Add size info if available
             if size_suggestion:
@@ -619,18 +685,24 @@ CSDL `goodzstore` gồm các bảng chính:
             context_parts.append(f"Mã giảm giá hiện có: {vouchers}")
         
         # Add recommendations names (whitelist) for the model to reference
-        allowed_names = ", ".join([r.get('name','') for r in recommendations]) if recommendations else ""
-        if allowed_names:
-            context_parts.append(f"Chỉ được nhắc các sản phẩm: {allowed_names}")
+        if recommendations:
+            rec_list = "\n".join([f"- {r.get('name')}: {r.get('url')}" for r in recommendations])
+            context_parts.append(f"Danh sách sản phẩm gợi ý (hãy dùng link này): \n{rec_list}")
         context_text = "\n".join(context_parts)
         
         # Combine into final prompt
+        # Sửa lại prompt để bao gồm lịch sử
         prompt = f"""{system_instruction}
         
-        Ngữ cảnh:
+        Lịch sử hội thoại (để hiểu ngữ cảnh):
+        ---
+        {history_text}
+        ---
+
+        Ngữ cảnh dữ liệu hiện tại (Sản phẩm/Voucher):
         {context_text}
         
-        Câu hỏi: {message}
+        Câu hỏi mới nhất của User: {message}
         """
         
         # Determine budget early for deterministic logic
@@ -798,7 +870,7 @@ CSDL `goodzstore` gồm các bảng chính:
 
             # Build polite reply
             if recs and len(recs) > 0:
-                names = ", ".join([f"{r.get('name')} ({r.get('url')})" for r in recs[:3]])
+                names = ", ".join([f"[{r.get('name')}]({r.get('url')})" for r in recs[:3]])
                 bot_text = f"Mình gợi ý những mẫu phù hợp: {names}. Bạn muốn xem chi tiết mẫu nào?"
             else:
                 bot_text = "Mình chưa tìm thấy sản phẩm phù hợp ngay bây giờ — bạn muốn mình lọc theo giá hoặc theo từ khóa cụ thể không?"
@@ -833,7 +905,8 @@ CSDL `goodzstore` gồm các bảng chính:
             else:
                 # If we couldn't build a deterministic reply, call Gemini as fallback
                 try:
-                    model = genai.GenerativeModel('gemini-flash-latest')
+                    model_name = os.getenv("GEMINI_MODEL_NAME", "gemini-1.5-flash")
+                    model = genai.GenerativeModel(model_name)
                     response = model.generate_content(prompt)
                     bot_text = response.text
                 except Exception as gemini_error:
@@ -845,6 +918,10 @@ CSDL `goodzstore` gồm các bảng chính:
                         voucher_codes = ", ".join([v['code'] for v in vouchers_for_output])
                         bot_text += f"Hiện tại shop đang có các mã giảm giá: {voucher_codes}. "
                     bot_text += "Bạn có thể xem thêm các sản phẩm tương tự bên dưới nhé!"
+
+        # Clean up bot text to remove "AI:" prefix if model generates it
+        if bot_text:
+            bot_text = re.sub(r'^(\*\*|__)?\s*(AI|Assistant|Bot|GoodZ AI)\s*(\*\*|__)?\s*:\s*', '', bot_text, flags=re.IGNORECASE).strip()
 
         # Build response
         result = {

@@ -1,77 +1,91 @@
-/* Admin Page Styles */
-/* Admin theme aligned to GoodZStore palette */
-:root {
-  --gray-900: #222;
-  --gray-800: #333;
-  --gray-100: #f9f9f9;
-  --white: #fff;
-  --yellow: #FFD600;
-  --peach: #FFB088;
-  --peach-strong: #FF9966;
-  --border: #e6e6e6;
-  --shadow: 0 8px 24px rgba(0,0,0,0.08);
-  --radius: 12px;
+/* Admin Dashboard Styles */
+
+/* Sidebar */
+.admin-sidebar {
+  min-height: 100vh;
+  background: var(--primary);
+  color: white;
+  transition: all 0.3s;
 }
 
-/* Base admin body styling and left padding to account for fixed sidebar */
-body.admin { 
-  background: var(--white);
-  color: var(--gray-900);
-  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-  padding-left: 250px; /* reserve space for sidebar */
+.admin-sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.7) !important;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
 }
 
-/* Make main content span full width (override Bootstrap col sizing) */
-body.admin .container-fluid > .row > main.col-md-10 {
-  flex: 0 0 100% !important;
-  max-width: 100% !important;
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link.active {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* Topbar */
-.topbar {
-  background: var(--gray-900);
-  color: #fff;
-  border-bottom: 1px solid #3a3a3a;
+.admin-sidebar .nav-link i {
+  width: 24px;
 }
-.topbar .btn-outline-warning { border-color: var(--yellow); color: var(--yellow); }
-.topbar .btn-outline-warning:hover { background: var(--yellow); color: var(--gray-900); }
 
-/* Cards */
-.card { border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
-.card .card-header { background: var(--gray-100); color: var(--gray-800); }
+/* Stats Cards */
+.stats-card {
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.stats-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
 
 /* Tables */
-.table { background: var(--white); border-color: var(--border); }
-.table thead.table-light { background: var(--gray-100); color: var(--gray-800); }
-.table-bordered > :not(caption) > * { border-color: var(--border); }
-
-/* Buttons */
-.btn-warning { background: var(--yellow); border: none; color: var(--gray-900); }
-.btn-warning:hover { background: var(--peach); color: var(--gray-900); }
-.btn-primary { background: var(--yellow); border: none; color: var(--gray-900); }
-.btn-primary:hover { background: var(--peach-strong); }
-.btn-danger { background: var(--peach-strong); border: none; }
-.btn-danger:hover { filter: brightness(0.95); }
-.btn-info { background: var(--peach); border: none; color: var(--gray-900); }
-.btn-info:hover { background: var(--yellow); }
-
-/* Pagination */
-.pagination .page-link { color: var(--gray-900); }
-.pagination .page-item.active .page-link { background: var(--yellow); border-color: var(--yellow); color: var(--gray-900); }
-
-/* Utilities */
-.content { padding: 16px; }
-.admin-avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items:center; justify-content:center; background: var(--yellow); color: var(--gray-900); font-weight: 700; }
-
-/* Make the topbar stay visible */
-body.admin .container-fluid > .row > main > .topbar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
+.table-responsive {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  background: white;
 }
-@media (max-width: 900px) {
-  body.admin { padding-left: 180px; }
+
+.table thead th {
+  background: #f8fafc;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem;
 }
-@media (max-width: 600px) {
-  body.admin { padding-left: 0; }
+
+.table tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Forms */
+.admin-form-card {
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
 }

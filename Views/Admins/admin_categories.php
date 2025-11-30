@@ -52,17 +52,21 @@ $result = $conn->query($sql);
     <div class="container-fluid">
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
-            <main class="col-md-10 ms-sm-auto px-0">
-                <div class="topbar d-flex align-items-center justify-content-between px-4 py-3">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="topbar d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
                     <h2>Quản lý Danh mục</h2>
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-3">
                         <form method="get" class="d-flex" style="gap:8px;">
-                            <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Tìm ID, tên, mô tả..." style="min-width:280px;">
-                            <button class="btn btn-outline-warning" type="submit">Tìm</button>
+                            <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Tìm danh mục..." style="min-width:200px;">
+                            <button class="btn btn-outline-warning" type="submit"><i class="fas fa-search"></i></button>
                         </form>
-                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Thêm danh mục</button>
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addCategoryModal"><i class="fas fa-plus"></i> Thêm</button>
+                        <div class="vr"></div>
+                        <?php include __DIR__ . '/admin_topbar_notifications.php'; ?>
                     </div>
                 </div>
+                <div class="p-4">
+                    <?php include __DIR__ . '/admin_alerts.php'; ?>
                 <!-- Modal thêm danh mục -->
                                 <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">

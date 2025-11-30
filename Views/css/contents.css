@@ -10,7 +10,6 @@ body {
 }
 
 .admin-content {
-    margin-left: 240px;
     padding: 32px;
     background: var(--bg-light);
     min-height: 100vh;
@@ -249,8 +248,13 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideDown {
@@ -258,6 +262,7 @@ body {
         transform: translateY(-50px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -370,26 +375,26 @@ input[type="checkbox"] {
         margin-left: 0;
         padding: 16px;
     }
-    
+
     .admin-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .modal-content {
         width: 95%;
         margin: 10% auto;
     }
-    
+
     .admin-table {
         font-size: 0.9rem;
     }
-    
+
     .admin-table thead th,
     .admin-table tbody td {
         padding: 10px 8px;

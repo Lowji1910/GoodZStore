@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../Models/db.php';
 
 // Check admin authentication
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
-    header('Location: ../Users/login.php');
+    header('Location: ../Users/auth.php');
     exit;
 }
 
@@ -98,29 +98,11 @@ include_once __DIR__ . '/admin_sidebar.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý AI Training - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
+    <link rel="stylesheet" href="/GoodZStore/Views/css/admin.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-        }
-        
-        .container {
-            margin-left: 250px;
-            padding: 2rem;
-        }
-        
-        h1, h2 {
-            color: #333;
-            margin-bottom: 1.5rem;
-        }
-        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -207,105 +189,6 @@ include_once __DIR__ . '/admin_sidebar.php';
             background: #f8f9fa;
         }
         
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background: #2196f3;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #1976d2;
-        }
-        
-        .btn-danger {
-            background: #f44336;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #d32f2f;
-        }
-        
-        .btn-sm {
-            padding: 0.3rem 0.8rem;
-            font-size: 0.85rem;
-        }
-        
-        .alert {
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-        
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        
-        .badge-info {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-        
-        .badge-success {
-            background: #e8f5e9;
-            color: #388e3c;
-        }
-        
-        .badge-warning {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-        
-        .pagination {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            margin-top: 2rem;
-        }
-        
-        .pagination a, .pagination span {
-            padding: 0.5rem 1rem;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-decoration: none;
-            color: #333;
-        }
-        
-        .pagination a:hover {
-            background: #f5f5f5;
-        }
-        
-        .pagination .active {
-            background: #2196f3;
-            color: white;
-            border-color: #2196f3;
-        }
-        
         .modal {
             display: none;
             position: fixed;
@@ -330,163 +213,151 @@ include_once __DIR__ . '/admin_sidebar.php';
             max-width: 500px;
             width: 90%;
         }
-        
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1><i class="fas fa-brain"></i> Quản lý AI Training Data</h1>
-        
-        <?= $message ?>
-        
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Tổng hội thoại</h3>
-                <div class="number"><?= number_format($total_conversations) ?></div>
-            </div>
-            <div class="stat-card">
-                <h3>Dữ liệu huấn luyện</h3>
-                <div class="number"><?= number_format(array_sum($stats)) ?></div>
-            </div>
-            <?php foreach ($stats as $label => $count): ?>
-            <div class="stat-card">
-                <h3><?= htmlspecialchars(ucfirst($label)) ?></h3>
-                <div class="number"><?= number_format($count) ?></div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('conversations')">
-                <i class="fas fa-comments"></i> Hội thoại
-            </button>
-            <button class="tab" onclick="switchTab('training')">
-                <i class="fas fa-database"></i> Dữ liệu huấn luyện
-            </button>
-        </div>
-        
-        <!-- Conversations Tab -->
-        <div id="conversations" class="tab-content active">
-            <div class="table-container">
-                <h2>Hội thoại người dùng</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Người dùng</th>
-                            <th>Tin nhắn</th>
-                            <th>Session</th>
-                            <th>Thời gian</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($conv = $conversations->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= $conv['id'] ?></td>
-                            <td><?= htmlspecialchars($conv['full_name'] ?? 'Guest') ?></td>
-                            <td>
-                                <?= htmlspecialchars(substr($conv['message'], 0, 100)) ?>
-                                <?php if (strlen($conv['message']) > 100): ?>...<?php endif; ?>
-                            </td>
-                            <td><span class="badge badge-info"><?= htmlspecialchars(substr($conv['session_id'], 0, 12)) ?></span></td>
-                            <td><?= date('d/m/Y H:i', strtotime($conv['created_at'])) ?></td>
-                            <td>
-                                <button class="btn btn-primary btn-sm" onclick="openTrainingModal(<?= $conv['id'] ?>, '<?= htmlspecialchars(addslashes($conv['message'])) ?>')">
-                                    <i class="fas fa-plus"></i> Thêm vào Training
-                                </button>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+    <div class="container-fluid">
+        <div class="row">
+            <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <h1><i class="fas fa-brain"></i> Quản lý AI Training Data</h1>
                 
-                <!-- Pagination -->
-                <div class="pagination">
-                    <?php if ($page > 1): ?>
-                        <a href="?page=<?= $page - 1 ?>"><i class="fas fa-chevron-left"></i> Trước</a>
-                    <?php endif; ?>
-                    
-                    <?php for ($i = max(1, $page - 2); $i <= min($total_pages, $page + 2); $i++): ?>
-                        <?php if ($i == $page): ?>
-                            <span class="active"><?= $i ?></span>
-                        <?php else: ?>
-                            <a href="?page=<?= $i ?>"><?= $i ?></a>
-                        <?php endif; ?>
-                    <?php endfor; ?>
-                    
-                    <?php if ($page < $total_pages): ?>
-                        <a href="?page=<?= $page + 1 ?>">Sau <i class="fas fa-chevron-right"></i></a>
-                    <?php endif; ?>
+                <?= $message ?>
+                
+                <!-- Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Tổng hội thoại</h3>
+                        <div class="number"><?= number_format($total_conversations) ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Dữ liệu huấn luyện</h3>
+                        <div class="number"><?= number_format(array_sum($stats)) ?></div>
+                    </div>
+                    <?php foreach ($stats as $label => $count): ?>
+                    <div class="stat-card">
+                        <h3><?= htmlspecialchars(ucfirst($label)) ?></h3>
+                        <div class="number"><?= number_format($count) ?></div>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Training Data Tab -->
-        <div id="training" class="tab-content">
-            <div class="table-container">
-                <h2>Dữ liệu huấn luyện</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nguồn</th>
-                            <th>Label</th>
-                            <th>Nội dung</th>
-                            <th>Thời gian</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($training = $training_data->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= $training['id'] ?></td>
-                            <td><span class="badge badge-info"><?= htmlspecialchars($training['source']) ?></span></td>
-                            <td>
-                                <?php
-                                $label = $training['label'] ?? 'unlabeled';
-                                $badgeClass = $label === 'unlabeled' ? 'badge-warning' : 'badge-success';
-                                ?>
-                                <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($label) ?></span>
-                            </td>
-                            <td>
-                                <?= htmlspecialchars(substr($training['text'], 0, 80)) ?>
-                                <?php if (strlen($training['text']) > 80): ?>...<?php endif; ?>
-                            </td>
-                            <td><?= date('d/m/Y H:i', strtotime($training['created_at'])) ?></td>
-                            <td>
-                                <form method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa?')">
-                                    <input type="hidden" name="action" value="delete_training">
-                                    <input type="hidden" name="training_id" value="<?= $training['id'] ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i> Xóa
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
+                
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('conversations')">
+                        <i class="fas fa-comments"></i> Hội thoại
+                    </button>
+                    <button class="tab" onclick="switchTab('training')">
+                        <i class="fas fa-database"></i> Dữ liệu huấn luyện
+                    </button>
+                </div>
+                
+                <!-- Conversations Tab -->
+                <div id="conversations" class="tab-content active">
+                    <div class="table-container">
+                        <h2>Hội thoại người dùng</h2>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Người dùng</th>
+                                    <th>Tin nhắn</th>
+                                    <th>Session</th>
+                                    <th>Thời gian</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($conv = $conversations->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $conv['id'] ?></td>
+                                    <td><?= htmlspecialchars($conv['full_name'] ?? 'Guest') ?></td>
+                                    <td>
+                                        <?= htmlspecialchars(substr($conv['message'], 0, 100)) ?>
+                                        <?php if (strlen($conv['message']) > 100): ?>...<?php endif; ?>
+                                    </td>
+                                    <td><span class="badge bg-info text-dark"><?= htmlspecialchars(substr($conv['session_id'], 0, 12)) ?></span></td>
+                                    <td><?= date('d/m/Y H:i', strtotime($conv['created_at'])) ?></td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm" onclick="openTrainingModal(<?= $conv['id'] ?>, '<?= htmlspecialchars(addslashes($conv['message'])) ?>')">
+                                            <i class="fas fa-plus"></i> Thêm vào Training
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Pagination -->
+                        <div class="pagination mt-3">
+                            <?php if ($page > 1): ?>
+                                <a href="?page=<?= $page - 1 ?>" class="btn btn-outline-secondary btn-sm me-2"><i class="fas fa-chevron-left"></i> Trước</a>
+                            <?php endif; ?>
+                            
+                            <?php for ($i = max(1, $page - 2); $i <= min($total_pages, $page + 2); $i++): ?>
+                                <?php if ($i == $page): ?>
+                                    <span class="btn btn-primary btn-sm me-2"><?= $i ?></span>
+                                <?php else: ?>
+                                    <a href="?page=<?= $i ?>" class="btn btn-outline-secondary btn-sm me-2"><?= $i ?></a>
+                                <?php endif; ?>
+                            <?php endfor; ?>
+                            
+                            <?php if ($page < $total_pages): ?>
+                                <a href="?page=<?= $page + 1 ?>" class="btn btn-outline-secondary btn-sm">Sau <i class="fas fa-chevron-right"></i></a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Training Data Tab -->
+                <div id="training" class="tab-content">
+                    <div class="table-container">
+                        <h2>Dữ liệu huấn luyện</h2>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nguồn</th>
+                                    <th>Label</th>
+                                    <th>Nội dung</th>
+                                    <th>Thời gian</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($training = $training_data->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $training['id'] ?></td>
+                                    <td><span class="badge bg-info text-dark"><?= htmlspecialchars($training['source']) ?></span></td>
+                                    <td>
+                                        <?php
+                                        $label = $training['label'] ?? 'unlabeled';
+                                        $badgeClass = $label === 'unlabeled' ? 'bg-warning text-dark' : 'bg-success';
+                                        ?>
+                                        <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($label) ?></span>
+                                    </td>
+                                    <td>
+                                        <?= htmlspecialchars(substr($training['text'], 0, 80)) ?>
+                                        <?php if (strlen($training['text']) > 80): ?>...<?php endif; ?>
+                                    </td>
+                                    <td><?= date('d/m/Y H:i', strtotime($training['created_at'])) ?></td>
+                                    <td>
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa?')">
+                                            <input type="hidden" name="action" value="delete_training">
+                                            <input type="hidden" name="training_id" value="<?= $training['id'] ?>">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i> Xóa
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
     
@@ -498,14 +369,14 @@ include_once __DIR__ . '/admin_sidebar.php';
                 <input type="hidden" name="action" value="add_to_training">
                 <input type="hidden" name="conv_id" id="modal_conv_id">
                 
-                <div class="form-group">
-                    <label>Tin nhắn:</label>
-                    <textarea id="modal_message" rows="3" readonly></textarea>
+                <div class="mb-3">
+                    <label class="form-label">Tin nhắn:</label>
+                    <textarea id="modal_message" class="form-control" rows="3" readonly></textarea>
                 </div>
                 
-                <div class="form-group">
-                    <label>Label (phân loại):</label>
-                    <select name="label" required>
+                <div class="mb-3">
+                    <label class="form-label">Label (phân loại):</label>
+                    <select name="label" class="form-select" required>
                         <option value="">-- Chọn label --</option>
                         <option value="recommend">Recommend (Gợi ý sản phẩm)</option>
                         <option value="ask_size">Ask Size (Hỏi về size)</option>
@@ -515,14 +386,15 @@ include_once __DIR__ . '/admin_sidebar.php';
                     </select>
                 </div>
                 
-                <div style="display:flex; gap:1rem; justify-content:flex-end;">
-                    <button type="button" class="btn" onclick="closeTrainingModal()">Hủy</button>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="closeTrainingModal()">Hủy</button>
                     <button type="submit" class="btn btn-primary">Lưu</button>
                 </div>
             </form>
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function switchTab(tabName) {
             // Hide all tabs

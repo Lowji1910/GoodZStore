@@ -1,16 +1,39 @@
 <?php
 // Quản lý đơn hàng cho admin
 require_once __DIR__ . '/../../Models/db.php';
+require_once __DIR__ . '/../../Models/notifications.php'; // Include notifications model
+
 $msg = '';
 // Cập nhật trạng thái đơn hàng
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $order_id = intval($_POST['order_id']);
     $status = $_POST['status'];
+    
+    // Get user_id before update
+    $uid = 0;
+    $resU = $conn->query("SELECT user_id FROM orders WHERE id = $order_id");
+    if ($resU && $resU->num_rows > 0) {
+        $uid = intval($resU->fetch_assoc()['user_id']);
+    }
+
     $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
     $stmt->bind_param("si", $status, $order_id);
-    $stmt->execute();
-    header("Location: admin_orders.php?msg=updated");
-    exit;
+    if ($stmt->execute()) {
+        // Notify user
+        if ($uid > 0) {
+            $statusText = [
+                'pending' => 'Chờ xử lý',
+                'processing' => 'Đang xử lý',
+                'completed' => 'Hoàn thành',
+                'cancelled' => 'Đã hủy'
+            ][$status] ?? $status;
+            
+            $notiMsg = "Đơn hàng #$order_id đã được cập nhật trạng thái: $statusText";
+            add_notification('Cập nhật đơn hàng', $notiMsg, '/GoodZStore/Views/Users/orders.php', $uid);
+        }
+        header("Location: admin_orders.php?msg=updated");
+        exit;
+    }
 }
 // Xóa đơn hàng
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_order'])) {
@@ -48,14 +71,20 @@ $result = $conn->query($sql);
     <div class="container-fluid">
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
-            <main class="col-md-10 ms-sm-auto px-0">
-                <div class="topbar d-flex align-items-center justify-content-between px-4 py-3">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="topbar d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
                     <h2>Quản lý Đơn hàng</h2>
-                    <form method="get" class="d-flex" style="gap:8px;">
-                        <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Tìm ID, khách, email, sđt, trạng thái..." style="min-width:320px;">
-                        <button class="btn btn-outline-warning" type="submit">Tìm</button>
-                    </form>
+                    <div class="d-flex align-items-center gap-3">
+                        <form method="get" class="d-flex" style="gap:8px;">
+                            <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Tìm đơn hàng..." style="min-width:200px;">
+                            <button class="btn btn-outline-warning" type="submit"><i class="fas fa-search"></i></button>
+                        </form>
+                        <div class="vr"></div>
+                        <?php include __DIR__ . '/admin_topbar_notifications.php'; ?>
+                    </div>
                 </div>
+                <div class="p-4">
+                    <?php include __DIR__ . '/admin_alerts.php'; ?>
                 <div class="content">
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
@@ -79,6 +108,7 @@ $result = $conn->query($sql);
                                     <td><?= $row['status'] ?></td>
                                     <td><?= $row['created_at'] ?></td>
                                     <td>
+                                        <button type="button" class="btn btn-sm btn-info text-white" onclick="viewOrder(<?= $row['id'] ?>)">Chi tiết</button>
                                         <form method="post" style="display:inline-block;">
                                             <input type="hidden" name="order_id" value="<?= $row['id'] ?>">
                                             <select name="status" class="form-select form-select-sm d-inline-block w-auto" style="min-width:120px;display:inline-block;">
@@ -119,6 +149,95 @@ $result = $conn->query($sql);
             </main>
         </div>
     </div>
+
+    <!-- Modal Chi tiết đơn hàng -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chi tiết đơn hàng #<span id="modalOrderId"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Thông tin khách hàng</h6>
+                            <p><strong>Tên:</strong> <span id="modalCustomerName"></span></p>
+                            <p><strong>Email:</strong> <span id="modalCustomerEmail"></span></p>
+                            <p><strong>SĐT:</strong> <span id="modalCustomerPhone"></span></p>
+                            <p><strong>Địa chỉ:</strong> <span id="modalCustomerAddress"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Thông tin đơn hàng</h6>
+                            <p><strong>Ngày đặt:</strong> <span id="modalOrderDate"></span></p>
+                            <p><strong>Trạng thái:</strong> <span id="modalOrderStatus"></span></p>
+                            <p><strong>Tổng tiền:</strong> <span id="modalOrderTotal" class="text-danger fw-bold"></span></p>
+                        </div>
+                    </div>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalOrderItems"></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    async function viewOrder(id) {
+        try {
+            const res = await fetch('/GoodZStore/Views/Admins/get_order_details.php?id=' + id);
+            const data = await res.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            const order = data.order;
+            document.getElementById('modalOrderId').textContent = order.id;
+            document.getElementById('modalCustomerName').textContent = order.full_name;
+            document.getElementById('modalCustomerEmail').textContent = order.email;
+            document.getElementById('modalCustomerPhone').textContent = order.phone_number;
+            document.getElementById('modalCustomerAddress').textContent = order.address;
+            document.getElementById('modalOrderDate').textContent = order.created_at;
+            document.getElementById('modalOrderStatus').textContent = order.status;
+            document.getElementById('modalOrderTotal').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.total_amount);
+            
+            const tbody = document.getElementById('modalOrderItems');
+            tbody.innerHTML = '';
+            data.items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="/GoodZStore/uploads/${item.image_url}" style="width:40px;height:40px;object-fit:cover;">
+                            <span>${item.name}</span>
+                        </div>
+                    </td>
+                    <td>${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price * item.quantity)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            new bootstrap.Modal(document.getElementById('orderDetailModal')).show();
+        } catch (e) {
+            console.error(e);
+            alert('Có lỗi xảy ra khi tải chi tiết đơn hàng');
+        }
+    }
+    </script>
 </body>
 </html>

@@ -41,11 +41,17 @@ async function fetchNotifications(){
     if (data.items && data.items.length){
       data.items.forEach(it => {
         const li = document.createElement('li');
-        li.className = 'px-3 py-2';
-        const a = document.createElement(it.link ? 'a' : 'div');
-        if (it.link) { a.href = it.link; a.style.textDecoration='none'; }
-        a.innerHTML = `<div><strong>${it.type}</strong> - ${it.message}</div><small class="text-muted">${it.created_at}</small>`;
-        li.appendChild(a);
+        li.className = 'px-3 py-2 border-bottom';
+        if (it.is_read == 0) li.style.backgroundColor = '#f0f8ff'; // Highlight unread
+        
+        const content = `
+            <div style="cursor:pointer;" onclick="markAsRead(${it.id}, '${it.link || ''}')">
+                <div class="fw-bold">${it.type}</div>
+                <div>${it.message}</div>
+                <small class="text-muted">${it.created_at}</small>
+            </div>
+        `;
+        li.innerHTML = content;
         list.appendChild(li);
       });
     } else {
@@ -53,6 +59,29 @@ async function fetchNotifications(){
     }
   }catch(e){ console.error(e); }
 }
+
+async function markAsRead(id, link) {
+    try {
+        await fetch('/GoodZStore/Views/Admins/notifications_api.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: 'action=mark_one_read&id=' + id
+        });
+        // Decrease badge count immediately for better UX
+        const badge = document.getElementById('notiBadge');
+        let count = parseInt(badge.textContent) || 0;
+        if (count > 0) {
+            count--;
+            badge.textContent = count;
+            if (count === 0) badge.style.display = 'none';
+        }
+        
+        // Redirect if link exists
+        if (link) window.location.href = link;
+        else fetchNotifications(); // Refresh list if no link
+    } catch (e) { console.error(e); }
+}
+
 setInterval(fetchNotifications, 10000);
 window.addEventListener('load', fetchNotifications);
 

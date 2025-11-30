@@ -103,14 +103,20 @@ if ($result) {
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
             
-            <main class="col-md-10 ms-sm-auto px-0">
-                <div class="admin-content">
-        <div class="admin-header">
-            <h1><i class="fas fa-images"></i> Quản lý Banners & Nội dung</h1>
-            <button class="btn btn-primary" onclick="openAddModal()">
-                <i class="fas fa-plus"></i> Thêm mới
-            </button>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                
+        <div class="topbar d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+            <h1 class="h2"><i class="fas fa-images"></i> Quản lý Banners & Nội dung</h1>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Thêm mới
+                </button>
+                <div class="vr"></div>
+                <?php include __DIR__ . '/admin_topbar_notifications.php'; ?>
+            </div>
         </div>
+        <div class="p-4">
+            <?php include __DIR__ . '/admin_alerts.php'; ?>
 
         <?php if (isset($_GET['success'])): ?>
             <div class="alert alert-success">
@@ -358,7 +364,7 @@ if ($result) {
         }
     }
     </script>
-                </div>
+
             </main>
         </div>
     </div>

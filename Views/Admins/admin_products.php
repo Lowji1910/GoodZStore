@@ -35,6 +35,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $msg = "Lỗi thêm sản phẩm: " . $stmt->error;
         }
     }
+    // Sửa sản phẩm
+    if (isset($_POST['update_product'])) {
+        $product_id = intval($_POST['product_id']);
+        $name = trim($_POST['name']);
+        $price = floatval($_POST['price']);
+        $stock_quantity = intval($_POST['stock_quantity']);
+        $category_id = intval($_POST['category_id']);
+        $is_featured = isset($_POST['is_featured']) ? 1 : 0;
+        
+        $stmt = $conn->prepare("UPDATE products SET name=?, price=?, stock_quantity=?, category_id=?, is_featured=? WHERE id=?");
+        $stmt->bind_param("sdiiii", $name, $price, $stock_quantity, $category_id, $is_featured, $product_id);
+        
+        if ($stmt->execute()) {
+            // Xử lý ảnh nếu có upload mới
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $image_url = uniqid('prod_', true) . '.' . $ext;
+                move_uploaded_file($_FILES['image']['tmp_name'], __DIR__ . '/../img/' . $image_url);
+                
+                // Cập nhật ảnh chính (xóa cũ thêm mới hoặc update)
+                // Đơn giản là update dòng có is_main=1 hoặc insert nếu chưa có
+                $conn->query("DELETE FROM product_images WHERE product_id=$product_id AND is_main=1");
+                $stmt_img = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_main) VALUES (?, ?, 1)");
+                $stmt_img->bind_param("is", $product_id, $image_url);
+                $stmt_img->execute();
+            }
+            header("Location: admin_products.php?msg=updated");
+            exit;
+        } else {
+            $msg = "Lỗi cập nhật: " . $stmt->error;
+        }
+    }
     // Xóa sản phẩm
     if (isset($_POST['delete_product'])) {
         $product_id = intval($_POST['delete_product']);
@@ -81,17 +113,21 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name ASC");
     <div class="container-fluid">
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
-            <main class="col-md-10 ms-sm-auto px-0">
-                <div class="topbar d-flex align-items-center justify-content-between px-4 py-3">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="topbar d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
                     <h2>Quản lý Sản phẩm</h2>
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-3">
                         <form method="get" class="d-flex" style="gap:8px;">
-                            <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Tìm sản phẩm hoặc danh mục..." style="min-width:260px;">
-                            <button class="btn btn-outline-warning" type="submit">Tìm</button>
+                            <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Tìm sản phẩm..." style="min-width:200px;">
+                            <button class="btn btn-outline-warning" type="submit"><i class="fas fa-search"></i></button>
                         </form>
-                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addProductModal">+ Thêm sản phẩm</button>
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="fas fa-plus"></i> Thêm</button>
+                        <div class="vr"></div>
+                        <?php include __DIR__ . '/admin_topbar_notifications.php'; ?>
                     </div>
                 </div>
+                <div class="p-4">
+                    <?php include __DIR__ . '/admin_alerts.php'; ?>
                 <!-- Modal thêm sản phẩm -->
                 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
@@ -167,7 +203,7 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name ASC");
                                     <td><?= $row['is_featured'] ? 'Nổi bật' : 'Bình thường' ?></td>
                                     <td><img src="../img/<?= htmlspecialchars($row['image_url']) ?>" alt="Ảnh" style="width:48px;height:48px;border-radius:8px;"></td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-info">Sửa</a>
+                                        <button type="button" class="btn btn-sm btn-info text-white" onclick='editProduct(<?= json_encode($row) ?>)'>Sửa</button>
                                         <form method="post" style="display:inline;" onsubmit="return confirm('Xóa sản phẩm này?')">
                                             <input type="hidden" name="delete_product" value="<?= $row['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
@@ -198,6 +234,73 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name ASC");
             </main>
         </div>
     </div>
+                    <!-- Modal sửa sản phẩm -->
+                    <div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post" enctype="multipart/form-data">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Sửa sản phẩm</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="product_id" id="edit_product_id">
+                                        <div class="mb-3">
+                                            <label class="form-label">Tên sản phẩm</label>
+                                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Giá</label>
+                                            <input type="number" name="price" id="edit_price" class="form-control" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Số lượng</label>
+                                            <input type="number" name="stock_quantity" id="edit_stock_quantity" class="form-control" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Danh mục</label>
+                                            <select name="category_id" id="edit_category_id" class="form-select" required>
+                                                <option value="">-- Chọn danh mục --</option>
+                                                <?php 
+                                                $categories->data_seek(0); // Reset pointer
+                                                if ($categories) while($cat = $categories->fetch_assoc()): ?>
+                                                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
+                                                <?php endwhile; ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Ảnh chính (Để trống nếu không đổi)</label>
+                                            <input type="file" name="image" class="form-control" accept="image/*">
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="is_featured" id="edit_is_featured">
+                                            <label class="form-check-label" for="edit_is_featured">Nổi bật</label>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                        <button type="submit" name="update_product" class="btn btn-primary">Lưu thay đổi</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function editProduct(product) {
+        document.getElementById('edit_product_id').value = product.id;
+        document.getElementById('edit_name').value = product.name;
+        document.getElementById('edit_price').value = product.price;
+        document.getElementById('edit_stock_quantity').value = product.stock_quantity;
+        document.getElementById('edit_category_id').value = product.category_id;
+        document.getElementById('edit_is_featured').checked = product.is_featured == 1;
+        
+        new bootstrap.Modal(document.getElementById('editProductModal')).show();
+    }
+    </script>
 </body>
 </html>

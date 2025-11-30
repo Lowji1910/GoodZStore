@@ -1,22 +1,79 @@
-<!-- Sidebar quản trị admin với icon và style nổi bật -->
-<link rel="stylesheet" href="/GoodZStore/Views/css/sidebar_admin.css">
+<!-- Dependencies -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="/GoodZStore/Views/css/layout.css">
+<link rel="stylesheet" href="/GoodZStore/Views/css/admin.css">
 <?php
 $current = basename($_SERVER['PHP_SELF']);
 ?>
-<div class="admin-sidebar">
-    <div class="sidebar-heading">GoodZStore<br><span>Admin</span></div>
-    <div class="sidebar-menu">
-        <a href="admin_dashboard.php" class="sidebar-item<?= $current=='admin_dashboard.php' ? ' sidebar-active' : '' ?>"><span>🏠</span> Dashboard</a>
-        <a href="admin_products.php" class="sidebar-item<?= $current=='admin_products.php' ? ' sidebar-active' : '' ?>"><span>🧥</span> Quản lý Sản phẩm</a>
-        <a href="admin_categories.php" class="sidebar-item<?= $current=='admin_categories.php' ? ' sidebar-active' : '' ?>"><span>📁</span> Quản lý Danh mục</a>
-        <a href="contents.php" class="sidebar-item<?= $current=='contents.php' ? ' sidebar-active' : '' ?>"><span>🖼️</span> Quản lý Banners</a>
-    <a href="admin_orders.php" class="sidebar-item<?= $current=='admin_orders.php' ? ' sidebar-active' : '' ?>"><span>📦</span> Quản lý Đơn hàng</a>
-    <a href="admin_order_history.php" class="sidebar-item<?= $current=='admin_order_history.php' ? ' sidebar-active' : '' ?>"><span>🕓</span> Lịch sử Đơn hàng</a>
-        <a href="admin_users.php" class="sidebar-item<?= $current=='admin_users.php' ? ' sidebar-active' : '' ?>"><span>🧑‍💼</span> Quản lý Người dùng</a>
-        <a href="admin_vouchers.php" class="sidebar-item<?= $current=='admin_vouchers.php' ? ' sidebar-active' : '' ?>"><span>🎫</span> Quản lý Voucher</a>
-        <a href="admin_reviews.php" class="sidebar-item<?= $current=='admin_reviews.php' ? ' sidebar-active' : '' ?>"><span>⭐</span> Quản lý Review</a>
-        <a href="admin_ai_training.php" class="sidebar-item<?= $current=='admin_ai_training.php' ? ' sidebar-active' : '' ?>"><span>🤖</span> AI Training</a>
-        <a href="admin_reports.php" class="sidebar-item<?= $current=='admin_reports.php' ? ' sidebar-active' : '' ?>"><span>📊</span> Báo cáo/Thống kê</a>
-    <a href="/GoodZStore/Views/Users/login.php" class="sidebar-item" style="margin-top:24px;color:#ff6f61;font-weight:bold;"><span>🚪</span> Đăng xuất</a>
+<div class="col-md-3 col-lg-2 px-0 position-fixed h-100 bg-dark admin-sidebar">
+    <div class="p-4 text-center border-bottom border-secondary">
+        <h4 class="fw-bold text-white mb-0">GoodZ<span class="text-warning">Admin</span></h4>
+    </div>
+    <div class="p-3">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active' : '' ?>" href="admin_dashboard.php">
+                    <i class="fas fa-chart-line me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_products.php' ? 'active' : '' ?>" href="admin_products.php">
+                    <i class="fas fa-tshirt me-2"></i> Sản phẩm
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_categories.php' ? 'active' : '' ?>" href="admin_categories.php">
+                    <i class="fas fa-tags me-2"></i> Danh mục
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_orders.php' ? 'active' : '' ?>" href="admin_orders.php">
+                    <i class="fas fa-shopping-cart me-2"></i> Đơn hàng
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_users.php' ? 'active' : '' ?>" href="admin_users.php">
+                    <i class="fas fa-users me-2"></i> Người dùng
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'contents.php' ? 'active' : '' ?>" href="contents.php">
+                    <i class="fas fa-images me-2"></i> Banner & Content
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_reviews.php' ? 'active' : '' ?>" href="admin_reviews.php">
+                    <i class="fas fa-star me-2"></i> Đánh giá
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_vouchers.php' ? 'active' : '' ?>" href="admin_vouchers.php">
+                    <i class="fas fa-ticket-alt me-2"></i> Voucher
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_reports.php' ? 'active' : '' ?>" href="admin_reports.php">
+                    <i class="fas fa-chart-bar me-2"></i> Báo cáo
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_ai_training.php' ? 'active' : '' ?>" href="admin_ai_training.php">
+                    <i class="fas fa-robot me-2"></i> AI Training
+                </a>
+            </li>
+            <li class="nav-item mt-4">
+                <a class="nav-link text-warning" href="../Users/index.php">
+                    <i class="fas fa-home me-2"></i> Về trang chủ
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="../Users/logout.php">
+                    <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                </a>
+            </li>
+        </ul>
     </div>
 </div>
+<!-- Spacer for sidebar -->
+<div class="col-md-3 col-lg-2"></div>

@@ -1,38 +1,42 @@
 <?php
+// Views/Users/vnpay_return.php
 session_start();
-require_once __DIR__ . '/../../Models/db.php';
 require_once __DIR__ . '/../../Models/vnpay_helper.php';
 
-$params = $_GET;
-// Verify signature
-$verified = verify_vnpay_return($params);
+$config = load_vnpay_env();
+$vnp_HashSecret = $config['VNPAY_HASH_SECRET'] ?? '';
+$vnp_SecureHash = $_GET['vnp_SecureHash'];
+$inputData = array();
 
-$orderId = intval($params['vnp_TxnRef'] ?? 0);
-$respCode = $params['vnp_ResponseCode'] ?? null;
-
-if (!$verified) {
-    // Signature mismatch
-    $_SESSION['checkout_error'] = 'Chữ ký VNPAY không hợp lệ.';
-    header('Location: order_success.php?order_id=' . $orderId . '&status=failed');
-    exit;
+foreach ($_GET as $key => $value) {
+    if (substr($key, 0, 4) == "vnp_") {
+        $inputData[$key] = $value;
+    }
+}
+unset($inputData['vnp_SecureHash']);
+ksort($inputData);
+$i = 0;
+$hashData = "";
+foreach ($inputData as $key => $value) {
+    if ($i == 1) {
+        $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
+    } else {
+        $hashData = $hashData . urlencode($key) . "=" . urlencode($value);
+        $i = 1;
+    }
 }
 
-// Update order status depending on response code
-if ($respCode === '00') {
-    // Payment success
-    $stmt = $conn->prepare('UPDATE orders SET status = ? WHERE id = ?');
-    $status = 'processing';
-    $stmt->bind_param('si', $status, $orderId);
-    $stmt->execute();
-    header('Location: order_success.php?order_id=' . $orderId . '&status=paid');
-    exit;
+$secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+$order_id = $_GET['vnp_TxnRef'];
+
+if ($secureHash == $vnp_SecureHash) {
+    if ($_GET['vnp_ResponseCode'] == '00') {
+        unset($_SESSION['cart']); 
+        header("Location: /GoodZStore/Views/Users/order_success.php?order_id=$order_id&status=paid");
+    } else {
+        header("Location: /GoodZStore/Views/Users/order_success.php?order_id=$order_id&status=failed");
+    }
 } else {
-    $stmt = $conn->prepare('UPDATE orders SET status = ? WHERE id = ?');
-    $status = 'cancelled';
-    $stmt->bind_param('si', $status, $orderId);
-    $stmt->execute();
-    header('Location: order_success.php?order_id=' . $orderId . '&status=failed');
-    exit;
+    echo "Sai chữ ký bảo mật (Invalid Signature). Vui lòng kiểm tra file .env";
 }
-
 ?>

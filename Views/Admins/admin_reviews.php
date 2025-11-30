@@ -32,10 +32,15 @@ $result = $conn->query($sql);
     <div class="container-fluid">
         <div class="row">
             <?php include_once __DIR__ . '/admin_sidebar.php'; ?>
-            <main class="col-md-10 ms-sm-auto px-0">
-                <div class="topbar d-flex align-items-center justify-content-between px-4 py-3">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="topbar d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
                     <h2>Quản lý Review</h2>
+                    <div class="d-flex align-items-center gap-3">
+                        <?php include __DIR__ . '/admin_topbar_notifications.php'; ?>
+                    </div>
                 </div>
+                <div class="p-4">
+                    <?php include __DIR__ . '/admin_alerts.php'; ?>
                 <div class="content">
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">

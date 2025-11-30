@@ -1,57 +1,84 @@
 <!-- Views/footer.php - Modern footer for GoodZStore -->
 <link rel="stylesheet" href="/GoodZStore/Views/css/footer.css">
 
-<footer>
-  <div class="footer-container">
-    <!-- Cột 1: Logo + Giới thiệu -->
-    <div class="footer-column">
-      <div class="footer-logo">GoodZStore</div>
-      <p class="footer-description">
-        GoodZStore – Nơi mang đến cho bạn phong cách thời trang hiện đại, chất lượng và cá tính.
-      </p>
-    </div>
+<footer class="bg-dark text-white pt-5 pb-3 mt-5">
+    <div class="container">
+        <div class="row">
+            <!-- Column 1: Brand -->
+            <div class="col-md-3 mb-4">
+                <h4 class="fw-bold mb-3">GoodZ<span class="text-warning">Store</span></h4>
+                <p class="text-secondary small">
+                    Nơi hội tụ những phong cách thời trang đẳng cấp và hiện đại nhất. Chúng tôi cam kết mang đến chất lượng tốt nhất cho bạn.
+                </p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" class="text-white fs-5"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="text-white fs-5"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-white fs-5"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
 
-    <!-- Cột 2: Liên kết nhanh -->
-    <div class="footer-column">
-      <h4 class="footer-title">Liên kết nhanh</h4>
-      <ul class="footer-list">
-        <li><a href="/GoodZStore/Views/Users/index.php">Trang chủ</a></li>
-        <li><a href="/GoodZStore/Views/Users/products.php">Sản phẩm</a></li>
-        <li><a href="/GoodZStore/Views/Users/about.php">Giới thiệu</a></li>
-        <li><a href="/GoodZStore/Views/Users/contact.php">Liên hệ</a></li>
-      </ul>
-    </div>
+            <!-- Column 2: Quick Links -->
+            <div class="col-md-3 mb-4">
+                <h5 class="fw-bold mb-3 text-warning">Liên kết nhanh</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/GoodZStore/Views/Users/index.php" class="text-secondary text-decoration-none hover-text-white">Trang chủ</a></li>
+                    <li class="mb-2"><a href="/GoodZStore/Views/Users/products.php" class="text-secondary text-decoration-none hover-text-white">Sản phẩm</a></li>
+                    <li class="mb-2"><a href="/GoodZStore/Views/Users/about.php" class="text-secondary text-decoration-none hover-text-white">Giới thiệu</a></li>
+                    <li class="mb-2"><a href="/GoodZStore/Views/Users/contact.php" class="text-secondary text-decoration-none hover-text-white">Liên hệ</a></li>
+                </ul>
+            </div>
 
-    <!-- Cột 3: Hỗ trợ khách hàng -->
-    <div class="footer-column">
-      <h4 class="footer-title">Hỗ trợ khách hàng</h4>
-      <ul class="footer-list">
-        <li><a href="#">Chính sách đổi trả</a></li>
-        <li><a href="#">Chính sách bảo mật</a></li>
-        <li><a href="#">Hướng dẫn mua hàng</a></li>
-        <li><a href="#">Phương thức thanh toán</a></li>
-      </ul>
-    </div>
+            <!-- Column 3: Policy -->
+            <div class="col-md-3 mb-4">
+                <h5 class="fw-bold mb-3 text-warning">Chính sách</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-text-white">Chính sách đổi trả</a></li>
+                    <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-text-white">Chính sách bảo mật</a></li>
+                    <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-text-white">Điều khoản dịch vụ</a></li>
+                    <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-text-white">Hướng dẫn mua hàng</a></li>
+                </ul>
+            </div>
 
-    <!-- Cột 4: Kết nối & Liên hệ -->
-    <div class="footer-column">
-      <h4 class="footer-title">Kết nối & Liên hệ</h4>
-      <div class="social-links">
-        <a href="#"><i class="fab fa-facebook"></i></a>
-        <a href="#"><i class="fab fa-instagram"></i></a>
-        <a href="#"><i class="fab fa-tiktok"></i></a>
-        <a href="#"><i class="fab fa-youtube"></i></a>
-      </div>
-      <div class="contact-info">Địa chỉ: 123 Đường Thời Trang, Quận 1, TP.HCM</div>
-      <div class="contact-info">Email: support@goodzstore.com</div>
-      <div class="contact-info">Hotline: 0901 234 567</div>
+            <!-- Column 4: Contact -->
+            <div class="col-md-3 mb-4">
+                <h5 class="fw-bold mb-3 text-warning">Liên hệ</h5>
+                <ul class="list-unstyled text-secondary">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2 text-warning"></i> 123 Đường Thời Trang, Q.1, TP.HCM</li>
+                    <li class="mb-2"><i class="fas fa-envelope me-2 text-warning"></i> support@goodzstore.com</li>
+                    <li class="mb-2"><i class="fas fa-phone me-2 text-warning"></i> 0901 234 567</li>
+                </ul>
+            </div>
+        </div>
+        
+        <hr class="border-secondary my-4">
+        
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start text-secondary small">
+                &copy; 2025 GoodZStore. All Rights Reserved.
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <i class="fab fa-cc-visa text-secondary fs-4 me-2"></i>
+                <i class="fab fa-cc-mastercard text-secondary fs-4 me-2"></i>
+                <i class="fab fa-cc-paypal text-secondary fs-4"></i>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <div class="footer-bottom">
-    © 2025 GoodZStore. All Rights Reserved.
-  </div>
 </footer>
+
+<!-- AI Chat Panel (global) -->
+<div id="ai-global-chat" style="display:none;position:fixed;right:20px;bottom:90px;width:340px;height:420px;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:2147483646;overflow:hidden;border:1px solid #e5e7eb;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#111827;color:#fff;">
+    <div style="font-weight:600;">GoodZ AI</div>
+    <button id="ai-close" style="background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;">×</button>
+  </div>
+  <div id="ai-chat-messages" style="height:300px;overflow-y:auto;padding:10px;background:#f9fafb;"></div>
+  <div style="padding:10px;border-top:1px solid #eee;background:#fff;display:flex;gap:6px;">
+    <input id="ai-input" type="text" placeholder="Hỏi trợ lý thời trang..." style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;">
+    <button id="ai-send" style="background:#2563eb;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;">Gửi</button>
+  </div>
+  <div id="ai-extras" style="max-height:160px;overflow:auto;padding:10px;background:#fff;border-top:1px solid #eee;display:none;"></div>
+  <div style="padding:8px 10px;background:#fff;border-top:1px solid #eee;font-size:12px;color:#6b7280;">🤖 AI có thể tư vấn size, gợi ý sản phẩm, và mã giảm giá.</div>
+</div>
 
 <!-- 🚀 Chatbot Script -->
 <script>
@@ -82,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
     aiExtras.appendChild(d);
   }
 
-  // Remove any leading speaker labels returned by backend to avoid duplicates (e.g., "AI:" "Assistant:")
   function sanitizeAiText(text) {
     if (!text) return '';
     try {
@@ -98,12 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
     aiAppend('AI', '⏳ Đang xử lý...');
 
     try {
-      // Detect product context on product detail page for DB-backed recommendations
-      const url = new URL(window.location.href);
-      const isProductPage = /\/Views\/Users\/product\.php$/i.test(url.pathname);
-      const productId = isProductPage ? parseInt(url.searchParams.get('id') || '0', 10) || null : null;
       const metadata = {};
-      if (productId) metadata.product_id = productId;
 
       const res = await fetch('http://127.0.0.1:5000/api/chat', {
         method: 'POST',
@@ -134,26 +155,12 @@ document.addEventListener('DOMContentLoaded', function () {
       aiBox.lastChild.innerHTML = `<strong>AI:</strong> ${cleaned}`;
     }
   }
-  <!-- AI Chat Panel (global) -->
-<div id="ai-global-chat" style="display:none;position:fixed;right:20px;bottom:90px;width:340px;height:420px;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:2147483646;overflow:hidden;border:1px solid #e5e7eb;">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#111827;color:#fff;">
-    <div style="font-weight:600;">GoodZ AI</div>
-    <button id="ai-close" style="background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;">×</button>
-  </div>
-  <div id="ai-chat-messages" style="height:300px;overflow-y:auto;padding:10px;background:#f9fafb;"></div>
-  <div style="padding:10px;border-top:1px solid #eee;background:#fff;display:flex;gap:6px;">
-    <input id="ai-input" type="text" placeholder="Hỏi trợ lý thời trang..." style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;">
-    <button id="ai-send" style="background:#2563eb;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;">Gửi</button>
-  </div>
-  <div id="ai-extras" style="max-height:160px;overflow:auto;padding:10px;background:#fff;border-top:1px solid #eee;display:none;"></div>
-  <div style="padding:8px 10px;background:#fff;border-top:1px solid #eee;font-size:12px;color:#6b7280;">🤖 AI có thể tư vấn size, gợi ý sản phẩm, và mã giảm giá.</div>
-  </div>
 
-
-  // Event bindings
   if (aiBtn) aiBtn.addEventListener('click', () => aiPanel.style.display = aiPanel.style.display === 'none' ? 'block' : 'none');
   if (aiClose) aiClose.addEventListener('click', () => aiPanel.style.display = 'none');
   if (aiSend) aiSend.addEventListener('click', aiSendMsg);
   if (aiInput) aiInput.addEventListener('keypress', e => { if (e.key === 'Enter') aiSendMsg(); });
 });
 </script>
+</body>
+</html>
