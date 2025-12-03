@@ -8,6 +8,12 @@
 GoodZStore là một nền tảng thương mại điện tử hiện đại chuyên về thời trang, được xây dựng với PHP, MySQL và tích hợp AI chatbot thông minh. Hệ thống cung cấp trải nghiệm mua sắm trực tuyến hoàn chỉnh với các tính năng quản lý sản phẩm, đơn hàng, thanh toán và hỗ trợ khách hàng tự động.
 
 ---
+Demo VNPAY: 
+- Ngân hàng: NCB
+- Số tài khoản: 9704198526191432198
+- Họ tên: NGUYEN VAN A
+- Ngày hêt hạn: 07/15
+- OTP: 123456
 
 ## 📋 Mục lục
 
